@@ -1,14 +1,15 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Test_Comments.Configuration;
 
 namespace Test_Comments.Base.Repository;
 
 public class BaseRepository<TDocument> : IBaseRepository<TDocument> where TDocument : Document
 {
-    private readonly DbContext _context;
+    private readonly AppDbContext  _context;
     private readonly DbSet<TDocument> _dbSet;
 
-    public BaseRepository(DbContext context)
+    public BaseRepository(AppDbContext  context)
     {
         _context = context;
         _dbSet = context.Set<TDocument>();
