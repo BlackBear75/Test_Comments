@@ -2,8 +2,8 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Test_Comments.Base.Repository;
 using Test_Comments.Entities;
+using Test_Comments.Entities.CommentGroup.Repository;
 using Test_Comments.Entities.CommentsGroup;
-using Test_Comments.Entities.CommentsGroup.Repository;
 using Test_Comments.Models;
 
 namespace Test_Comments.Controllers;
@@ -11,9 +11,9 @@ namespace Test_Comments.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly ICommentsRepository<Comment> _comment;
+    private readonly ICommentRepository<Comment> _comment;
 
-    public HomeController(ILogger<HomeController> logger,ICommentsRepository<Comment> comment)
+    public HomeController(ILogger<HomeController> logger,ICommentRepository<Comment> comment)
     {
         _logger = logger;
         _comment = comment;
@@ -40,12 +40,6 @@ public class HomeController : Controller
             return StatusCode(500, "Internal server error.");
         }
 
-        return View();
-    }
-
-
-    public IActionResult Privacy()
-    {
         return View();
     }
 

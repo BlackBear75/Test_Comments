@@ -1,0 +1,17 @@
+<div class="profile-container">
+  <h2>Профіль користувача</h2>
+
+  <div class="profile-info">
+    <div class="profile-field">
+      <strong>Ім'я:</strong> <span>{{ user.name }}</span>
+    </div>
+    <div class="profile-field">
+      <strong>Email:</strong> <span>{{ user.email }}</span>
+    </div>
+    <div class="profile-field">
+      <strong>Домашня сторінка:</strong> <span>{{ user.homePage }}</span>
+    </div>
+  </div>
+
+  <button (click)="editProfile()" class="edit-button">Редагувати профіль</button>
+</div>

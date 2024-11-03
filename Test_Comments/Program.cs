@@ -13,6 +13,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseCors("AllowAngularApp");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

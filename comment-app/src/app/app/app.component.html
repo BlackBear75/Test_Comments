@@ -1,0 +1,20 @@
+<div class="page-container">
+  <header class="header" [class.hidden]="!isNavbarVisible">
+    <a routerLink="/" routerLinkActive="active-link" class="logo">Test_Comments</a>
+    <nav>
+      <button routerLink="/add-record" routerLinkActive="active-link" class="nav-button">Додати запис</button>
+      <button routerLink="/comments" routerLinkActive="active-link" class="nav-button">Коментарі</button>
+      <button routerLink="/profile" routerLinkActive="active-link" class="nav-button">Профіль</button>
+      <button routerLink="/login" routerLinkActive="active-link" class="nav-button">Увійти</button>
+      <button routerLink="/register" routerLinkActive="active-link" class="nav-button">Реєстрація</button>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2024 Test_Comments. Усі права захищені.</p>
+  </footer>
+</div>

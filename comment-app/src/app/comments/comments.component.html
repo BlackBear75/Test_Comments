@@ -1,0 +1,28 @@
+<div class="comments-container">
+  <h2>Записи та коментарі</h2>
+
+  <div *ngFor="let record of records" class="record">
+    <div class="record-header">
+      <strong>{{ record.userName }}</strong> <span>{{ record.date }}</span>
+    </div>
+    <p>{{ record.text }}</p>
+
+    <button (click)="toggleCommentForm(record)" class="add-comment-button">Додати коментар</button>
+
+    <form *ngIf="record.showCommentForm" (ngSubmit)="addComment(record)" class="comment-form">
+      <input type="text" [(ngModel)]="record.newComment.userName" name="userName" placeholder="Ваше ім'я" required />
+      <textarea [(ngModel)]="record.newComment.text" name="text" placeholder="Ваш коментар" required></textarea>
+      <button type="submit">Додати коментар</button>
+    </form>
+
+    <div *ngFor="let comment of record.comments" class="comment">
+      <strong>{{ comment.userName }}</strong> <span>{{ comment.date }}</span>
+      <p>{{ comment.text }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="isPaginationVisible()" class="pagination">
+    <button (click)="prevPage()">Попередня</button>
+    <button (click)="nextPage()">Наступна</button>
+  </div>
+</div>
