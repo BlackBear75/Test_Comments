@@ -35,9 +35,13 @@ namespace Test_Comments.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authService.LoginAsync(request);
-            if (result.IsSuccess)
-                return Ok(result);
-            return Unauthorized(result);
+            if (!result.IsSuccess)
+            {
+                return Unauthorized(new { result.Message });
+            }
+
+            return Ok(new { result.Message, result.UserId });
         }
+    
     }
 }

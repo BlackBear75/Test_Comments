@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
-import {Router, RouterModule} from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterModule, CommonModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
@@ -28,6 +28,7 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login successful:', response);
         this.authService.setLoggedIn(true);
+        this.authService.setUserId(response.userId);
         this.router.navigate(['/']);
       },
       error: (error) => {

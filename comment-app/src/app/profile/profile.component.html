@@ -1,18 +1,51 @@
-<div class="profile-container">
+<div *ngIf="user; else loading" class="profile-container">
   <h2>Профіль користувача</h2>
 
   <div class="profile-info">
     <div class="profile-field">
-      <strong>Ім'я:</strong> <span>{{ user.name }}</span>
+      <strong>Ім'я:</strong>
+      <span *ngIf="!isEditing">{{ user.name }}</span>
+      <input
+        *ngIf="isEditing"
+        [(ngModel)]="user.name"
+        required
+        placeholder="Введіть ім'я"
+        class="input-field"
+      />
+      <div *ngIf="isEditing && !user.name" class="error-message">
+        Ім'я є обов'язковим
+      </div>
     </div>
     <div class="profile-field">
-      <strong>Email:</strong> <span>{{ user.email }}</span>
-    </div>
-    <div class="profile-field">
-      <strong>Домашня сторінка:</strong> <span>{{ user.homePage }}</span>
+      <strong>Email:</strong>
+      <span *ngIf="!isEditing">{{ user.email }}</span>
+      <input
+        *ngIf="isEditing"
+        [(ngModel)]="user.email"
+        required
+        placeholder="Введіть email"
+        class="input-field"
+      />
+      <div *ngIf="isEditing && !user.email" class="error-message">
+        Email є обов'язковим
+      </div>
+      <div *ngIf="isEditing && user.email && !isEmailValid(user.email)" class="error-message">
+        Неправильний формат email
+      </div>
     </div>
   </div>
 
-  <button (click)="editProfile()" class="edit-button">Редагувати профіль</button>
+  <button *ngIf="!isEditing" (click)="editProfile()" class="edit-button">Редагувати профіль</button>
+  <button
+    *ngIf="isEditing"
+    (click)="saveProfile()"
+    class="save-button"
+    [disabled]="!user.name || !user.email || !isEmailValid(user.email)">
+    Зберегти
+  </button>
   <button (click)="logout()" class="logout-button">Вийти</button>
 </div>
+
+<ng-template #loading>
+  <div>Завантаження профілю...</div>
+</ng-template>

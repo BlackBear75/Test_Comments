@@ -49,13 +49,18 @@ namespace Test_Comments.Services
 
         public async Task<AuthResult> LoginAsync(LoginRequest request)
         {
-            
             var user = await _userRepository.FindOneAsync(u => u.Email == request.Email);
             if (user == null || !VerifyPasswordHash(request.Password, user.PasswordHash))
                 return new AuthResult { IsSuccess = false, Message = "Невірний email або пароль" };
 
-            return new AuthResult { IsSuccess = true, Message = "Логін успішний" };
+            return new AuthResult 
+            { 
+                IsSuccess = true, 
+                Message = "Логін успішний", 
+                UserId = user.Id 
+            };
         }
+
 
         private string HashPassword(string password)
         {

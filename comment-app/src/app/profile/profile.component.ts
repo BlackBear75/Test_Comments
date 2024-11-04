@@ -1,23 +1,64 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
+  imports: [CommonModule, FormsModule],
   standalone: true,
   styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent {
-  user = {
-    name: 'Імя користувача' ,
-    email: 'user@example.com',
-    homePage: 'https://example.com'
-  };
+export class ProfileComponent implements OnInit {
+  user: any = null;
+  errorMessage: string | null = null;
+  isEditing: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
+  ngOnInit() {
+    const userId = this.authService.getUserId();
+    if (userId) {
+      this.authService.getProfile(userId).subscribe({
+        next: (data) => {
+          this.user = data;
+          this.errorMessage = null;
+        },
+        error: (error) => {
+          console.error('Error fetching profile', error);
+          this.errorMessage = 'Не вдалося завантажити профіль. Спробуйте пізніше.';
+        }
+      });
+    } else {
+      this.errorMessage = 'Користувач не авторизований';
+    }
+  }
+
+  isEmailValid(email: string): boolean {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
+  }
+
   editProfile() {
+    this.isEditing = true;
+  }
+
+  saveProfile() {
+    const userId = this.authService.getUserId();
+    if (userId) {
+      this.authService.updateProfile(userId, this.user).subscribe({
+        next: () => {
+          this.isEditing = false;
+          this.errorMessage = null;
+        },
+        error: (error) => {
+          console.error('Error updating profile', error);
+          this.errorMessage = 'Не вдалося оновити профіль. Спробуйте пізніше.';
+        }
+      });
+    }
   }
 
   logout() {
