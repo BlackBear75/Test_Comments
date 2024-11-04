@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Test_Comments.Entities;
-using Test_Comments.Entities.CommentsGroup;
+using Test_Comments.Entities.CommentGroup;
 using Test_Comments.Entities.UserGroup;
 
 namespace Test_Comments.Configuration;

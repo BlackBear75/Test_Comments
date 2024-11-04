@@ -1,6 +1,8 @@
 <div class="form-container">
   <h2>Вхід</h2>
   <form (ngSubmit)="onLoginSubmit()">
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
     <div class="input-group">
       <label for="email">Email:</label>
       <input type="email" id="email" [(ngModel)]="email" name="email" required />

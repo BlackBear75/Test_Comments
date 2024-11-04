@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Test_Comments.Base;
 
-namespace Test_Comments.Entities.CommentsGroup
+namespace Test_Comments.Entities.CommentGroup
 {
     public class Comment : Document
     {

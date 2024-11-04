@@ -1,22 +1,27 @@
 import { Component } from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {RouterModule} from '@angular/router';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-profile',
-  standalone: true,
-  imports: [FormsModule,RouterModule],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  standalone: true,
+  styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent {
   user = {
-    name: 'Ім\'я користувача',
+    name: 'Імя користувача' ,
     email: 'user@example.com',
     homePage: 'https://example.com'
   };
 
+  constructor(private authService: AuthService, private router: Router) {}
+
   editProfile() {
-    console.log('Редагування профілю');
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/']);
   }
 }

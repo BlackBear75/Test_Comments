@@ -6,10 +6,10 @@ namespace Test_Comments.Base.Repository;
 
 public class BaseRepository<TDocument> : IBaseRepository<TDocument> where TDocument : Document
 {
-    private readonly AppDbContext  _context;
+    private readonly AppDbContext _context;
     private readonly DbSet<TDocument> _dbSet;
 
-    public BaseRepository(AppDbContext  context)
+    public BaseRepository(AppDbContext context)
     {
         _context = context;
         _dbSet = context.Set<TDocument>();
@@ -55,5 +55,39 @@ public class BaseRepository<TDocument> : IBaseRepository<TDocument> where TDocum
     public async Task<int> CountAsync(Expression<Func<TDocument, bool>> filterExpression)
     {
         return await _dbSet.CountAsync(filterExpression);
+    }
+
+    // Реалізація нових методів
+    public async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression)
+    {
+        return await _dbSet.Where(filterExpression).Where(d => !d.Deleted).FirstOrDefaultAsync();
+    }
+
+    public async Task<bool> ExistsAsync(Expression<Func<TDocument, bool>> filterExpression)
+    {
+        return await _dbSet.AnyAsync(filterExpression);
+    }
+
+    public async Task UpdateManyAsync(Expression<Func<TDocument, bool>> filterExpression, Action<TDocument> updateAction)
+    {
+        var documents = await _dbSet.Where(filterExpression).Where(d => !d.Deleted).ToListAsync();
+        foreach (var document in documents)
+        {
+            updateAction(document);
+            _dbSet.Update(document);
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteManyAsync(Expression<Func<TDocument, bool>> filterExpression)
+    {
+        var documents = await _dbSet.Where(filterExpression).Where(d => !d.Deleted).ToListAsync();
+        foreach (var document in documents)
+        {
+            document.Deleted = true;
+            document.DeletionDate = DateTime.UtcNow;
+            _dbSet.Update(document);
+        }
+        await _context.SaveChangesAsync();
     }
 }

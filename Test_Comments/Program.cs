@@ -2,24 +2,22 @@ using Test_Comments.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
-builder.ConfigureServices();
+builder.ConfigureServices(); 
 
 var app = builder.Build();
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
 
 app.UseCors("AllowAngularApp");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
+
+app.UseSwagger(); 
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test Comments API V1");
+    c.RoutePrefix = string.Empty; 
+});
 
 app.MapControllerRoute(
     name: "default",

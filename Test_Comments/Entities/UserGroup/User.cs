@@ -13,9 +13,9 @@ public class User : Document
     [Required]
     [EmailAddress(ErrorMessage = "Некорректный формат E-mail")]
     public string Email { get; set; }
-
-    [Url(ErrorMessage = "Некорректный формат URL для Home Page")]
-    public string? HomePage { get; set; } 
+    
+    [Required]
+    public string PasswordHash { get; set; }
 
     public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 }

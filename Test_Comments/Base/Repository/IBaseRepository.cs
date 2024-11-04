@@ -11,4 +11,9 @@ public interface IBaseRepository<TDocument> where TDocument : Document
     Task DeleteOneAsync(Guid id);
     Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> filterExpression);
     Task<int> CountAsync(Expression<Func<TDocument, bool>> filterExpression);
+
+    Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
+    Task<bool> ExistsAsync(Expression<Func<TDocument, bool>> filterExpression);
+    Task UpdateManyAsync(Expression<Func<TDocument, bool>> filterExpression, Action<TDocument> updateAction);
+    Task DeleteManyAsync(Expression<Func<TDocument, bool>> filterExpression);
 }
