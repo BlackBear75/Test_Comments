@@ -1,57 +1,59 @@
-﻿using Test_Comments.Entities.RecordGroup;
+﻿using System;
+using System.Threading.Tasks;
+using Test_Comments.Entities.RecordGroup;
 using Test_Comments.Entities.RecordGroup.Repository;
 using Test_Comments.Models.RecordModels;
 
-namespace Test_Comments.Services;
-
-
-public interface IRecordService
+namespace Test_Comments.Services
 {
-    Task<Response> AddRecordAsync(RecordRequest request);
-}
-public class RecordService : IRecordService
-{
-    private readonly IRecordRepository<Record> _recordRepository;
-    
-    public RecordService(IRecordRepository<Record> recordRepository)
+    public interface IRecordService
     {
-        _recordRepository = recordRepository;
-
+        Task<Response> AddRecordAsync(RecordModel request);
     }
-     
-    
-    public async Task<Response> AddRecordAsync(RecordRequest request)
+
+    public class RecordService : IRecordService
     {
-        try
+        private readonly IRecordRepository<Record> _recordRepository;
+
+        public RecordService(IRecordRepository<Record> recordRepository)
         {
-            var record = new Record
-            {
-                UserName = request.UserName,
-                Email = request.Email,
-                Captcha = request.Captcha,
-                Text = request.Text
-            };
-
-            await _recordRepository.InsertOneAsync(record);
-
-            return new Response
-            {
-                Success = true,
-                Message = "Запис успішно додано"
-            };
+            _recordRepository = recordRepository;
         }
-        catch (Exception ex)
+
+        public async Task<Response> AddRecordAsync(RecordModel request)
         {
-            return new Response
+            try
             {
-                Success = false,
-                Message = $"Помилка: {ex.Message}"
-            };
+                var record = new Record
+                {
+                    UserName = request.UserName,
+                    Email = request.Email,
+                    Captcha = request.Captcha,
+                    Text = request.Text
+                };
+
+                await _recordRepository.InsertOneAsync(record);
+
+                return new Response
+                {
+                    Success = true,
+                    Message = "Запис успішно додано"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = $"Помилка: {ex.Message}"
+                };
+            }
         }
     }
-}
-public class Response
-{
-    public bool Success { get; set; }
-    public string Message { get; set; }
+
+    public class Response
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+    }
 }

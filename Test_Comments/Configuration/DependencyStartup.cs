@@ -44,6 +44,8 @@ public static class DependencyStartup
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IRecordService, RecordService>();
+        
 
       
     }

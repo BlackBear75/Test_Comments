@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Test_Comments.Models.UserModels;
 using Test_Comments.Services;
 
@@ -17,12 +18,19 @@ namespace Test_Comments.Controllers
             _userService = userService;
         }
 
-        [HttpGet("profile/{userId}")]
-        public async Task<ActionResult<UserProfileRequest>> GetProfile(Guid userId)
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
         {
+            var userId = User.FindFirst("userId")?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
             try
             {
-                var profile = await _userService.GetProfileAsync(userId);
+                var profile = await _userService.GetUserAsync(Guid.Parse(userId));
                 return Ok(profile);
             }
             catch (Exception ex)
@@ -30,12 +38,20 @@ namespace Test_Comments.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
-        [HttpPut("profile/{userId}")]
-        public async Task<IActionResult> UpdateProfile(Guid userId, [FromBody] UserProfileRequest request)
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UserProfileRequest request)
         {
+            var userId = User.FindFirst("userId")?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
             try
             {
-                await _userService.UpdateProfileAsync(userId, request);
+                await _userService.UpdateProfileAsync(Guid.Parse(userId), request);
                 return NoContent();
             }
             catch (Exception ex)

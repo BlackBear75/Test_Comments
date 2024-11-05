@@ -1,10 +1,14 @@
-﻿using System.Threading.Tasks;
-using Test_Comments.Entities.UserGroup;
-using Test_Comments.Entities.UserGroup.Repository;
-using Microsoft.AspNetCore.Identity;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Test_Comments.Entities.UserGroup;
 using Test_Comments.Models.AuthModels;
+using System.Threading.Tasks;
+using Test_Comments.Entities.UserGroup.Repository;
 
 namespace Test_Comments.Services
 {
@@ -17,23 +21,24 @@ namespace Test_Comments.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository<User> _userRepository;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(IUserRepository<User> userRepository)
+        public AuthService(IUserRepository<User> userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _configuration = configuration;
         }
 
         public async Task<AuthResult> RegisterAsync(RegisterRequest request)
         {
-            
             var existingUserbyEmail = await _userRepository.FindOneAsync(u => u.Email == request.Email);
             if (existingUserbyEmail != null)
-                return new AuthResult { IsSuccess = false, Message = "Користувач з такой електронной скринькой вже існує" };
+                return new AuthResult { IsSuccess = false, Message = "Користувач з такою електронною скринькою вже існує" };
+
             var existingUserbyName = await _userRepository.FindOneAsync(u => u.UserName == request.UserName);
             if (existingUserbyName != null)
                 return new AuthResult { IsSuccess = false, Message = "Користувач з таким логіном вже існує" };
 
-            
             var passwordHash = HashPassword(request.Password);
 
             var newUser = new User
@@ -53,14 +58,37 @@ namespace Test_Comments.Services
             if (user == null || !VerifyPasswordHash(request.Password, user.PasswordHash))
                 return new AuthResult { IsSuccess = false, Message = "Невірний email або пароль" };
 
-            return new AuthResult 
-            { 
-                IsSuccess = true, 
-                Message = "Логін успішний", 
-                UserId = user.Id 
+            var token = GenerateJwtToken(user);
+
+            return new AuthResult
+            {
+                IsSuccess = true,
+                Message = "Логін успішний",
+                Token = token
             };
         }
 
+        private string GenerateJwtToken(User user)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("userId", user.Id.ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(3),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
 
         private string HashPassword(string password)
         {

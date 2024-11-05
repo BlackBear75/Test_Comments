@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '@env//environment';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -11,12 +11,16 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  getProfile(userId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/User/profile/${userId}`);
+  getProfile(): Observable<any> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.getToken()}`);
+    return this.http.get(`${this.apiUrl}/User/profile`, { headers });
   }
-  updateProfile(userId: string, data: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/User/profile/${userId}`, data);
+
+  updateProfile(data: any): Observable<any> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.getToken()}`);
+    return this.http.put(`${this.apiUrl}/User/profile`, data, { headers });
   }
+
   register(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/Auth/register`, data);
   }
@@ -25,24 +29,19 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/Auth/login`, data);
   }
 
-  setLoggedIn(loggedIn: boolean) {
-    localStorage.setItem('isLoggedIn', String(loggedIn));
+  setToken(token: string) {
+    localStorage.setItem('token', token);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
   }
 
   isLoggedIn(): boolean {
-    return localStorage.getItem('isLoggedIn') === 'true';
-  }
-
-  setUserId(userId: string) {
-    localStorage.setItem('userId', userId);
-  }
-
-  getUserId(): string | null {
-    return localStorage.getItem('userId');
+    return !!this.getToken();
   }
 
   logout() {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userId');
+    localStorage.removeItem('token');
   }
 }

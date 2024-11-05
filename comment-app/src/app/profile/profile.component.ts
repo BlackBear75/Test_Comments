@@ -19,21 +19,16 @@ export class ProfileComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
-    const userId = this.authService.getUserId();
-    if (userId) {
-      this.authService.getProfile(userId).subscribe({
-        next: (data) => {
-          this.user = data;
-          this.errorMessage = null;
-        },
-        error: (error) => {
-          console.error('Error fetching profile', error);
-          this.errorMessage = 'Не вдалося завантажити профіль. Спробуйте пізніше.';
-        }
-      });
-    } else {
-      this.errorMessage = 'Користувач не авторизований';
-    }
+    this.authService.getProfile().subscribe({
+      next: (data) => {
+        this.user = data;
+        this.errorMessage = null;
+      },
+      error: (error) => {
+        console.error('Error fetching profile', error);
+        this.errorMessage = 'Не вдалося завантажити профіль. Спробуйте пізніше.';
+      }
+    });
   }
 
   isEmailValid(email: string): boolean {
@@ -46,19 +41,16 @@ export class ProfileComponent implements OnInit {
   }
 
   saveProfile() {
-    const userId = this.authService.getUserId();
-    if (userId) {
-      this.authService.updateProfile(userId, this.user).subscribe({
-        next: () => {
-          this.isEditing = false;
-          this.errorMessage = null;
-        },
-        error: (error) => {
-          console.error('Error updating profile', error);
-          this.errorMessage = 'Не вдалося оновити профіль. Спробуйте пізніше.';
-        }
-      });
-    }
+    this.authService.updateProfile(this.user).subscribe({
+      next: () => {
+        this.isEditing = false;
+        this.errorMessage = null;
+      },
+      error: (error) => {
+        console.error('Error updating profile', error);
+        this.errorMessage = 'Не вдалося оновити профіль. Спробуйте пізніше.';
+      }
+    });
   }
 
   logout() {

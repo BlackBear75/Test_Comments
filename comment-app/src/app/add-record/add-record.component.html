@@ -1,30 +1,27 @@
 <div class="add-record-container">
   <h2>Додати запис</h2>
   <form (ngSubmit)="onSubmit()" #recordForm="ngForm">
-    <div class="form-group">
-      <label for="userName">Ім'я користувача:</label>
-      <input type="text" id="userName" name="userName" [(ngModel)]="record.userName" required />
-    </div>
-
-    <div class="form-group">
-      <label for="email">E-mail:</label>
-      <input type="email" id="email" name="email" [(ngModel)]="record.email" required />
-    </div>
-
-    <div class="form-group">
-      <label for="homePage">Домашня сторінка:</label>
-      <input type="url" id="homePage" name="homePage" [(ngModel)]="record.homePage" />
-    </div>
 
     <div class="form-group">
       <label for="captcha">CAPTCHA:</label>
-      <input type="text" id="captcha" name="captcha" [(ngModel)]="record.captcha" required />
-      <img src="captcha_image_url" alt="CAPTCHA" /> <!-- Додайте реальне посилання на зображення CAPTCHA -->
+      <input
+        type="text"
+        id="captcha"
+        name="captcha"
+        [(ngModel)]="record.captcha"
+        required
+      />
+      <img [src]="captchaImageUrl" alt="CAPTCHA" />
     </div>
 
     <div class="form-group">
       <label for="text">Текст:</label>
-      <textarea id="text" name="text" [(ngModel)]="record.text" required></textarea>
+      <textarea
+        id="text"
+        name="text"
+        [(ngModel)]="record.text"
+        required
+      ></textarea>
     </div>
 
     <button type="submit" [disabled]="!recordForm.valid">Додати запис</button>

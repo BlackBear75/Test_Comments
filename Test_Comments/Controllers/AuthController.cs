@@ -40,7 +40,7 @@ namespace Test_Comments.Controllers
                 return Unauthorized(new { result.Message });
             }
 
-            return Ok(new { result.Message, result.UserId });
+            return Ok(new { result.Message, result.Token });
         }
     
     }

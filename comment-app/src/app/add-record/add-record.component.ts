@@ -1,25 +1,34 @@
 import { Component } from '@angular/core';
-import {RouterModule} from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { RecordService } from '../services/record.service';
 
 @Component({
   selector: 'app-add-record',
   standalone: true,
-  imports: [RouterModule,FormsModule],
+  imports: [FormsModule],
   templateUrl: './add-record.component.html',
-  styleUrl: './add-record.component.css'
+  styleUrls: ['./add-record.component.css']
 })
 export class AddRecordComponent {
   record = {
-    userName: '',
-    email: '',
-    homePage: '',
     captcha: '',
     text: ''
   };
 
+  captchaImageUrl = 'captcha_image_url';
+
+  constructor(private recordService: RecordService, private router: Router) {}
+
   onSubmit() {
-    console.log('Запис додано:', this.record);
-    // Логіка для збереження запису в базу даних
+    this.recordService.addRecord(this.record).subscribe({
+      next: (response) => {
+        console.log('Запис додано:', response);
+        this.router.navigate(['/records']);
+      },
+      error: (error) => {
+        console.error('Помилка додавання запису:', error);
+      }
+    });
   }
 }

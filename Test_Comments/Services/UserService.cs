@@ -7,7 +7,7 @@ namespace Test_Comments.Services;
 
 public interface IUserService
 {
-    Task<UserProfileRequest> GetProfileAsync(Guid userId);
+    Task<UserProfileRequest> GetUserAsync(Guid userId);
     Task<bool> UpdateProfileAsync(Guid userId, UserProfileRequest request);
 }
 
@@ -20,7 +20,7 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public async Task<UserProfileRequest> GetProfileAsync(Guid userId)
+    public async Task<UserProfileRequest> GetUserAsync(Guid userId)
     {
         var user = await _userRepository.FindByIdAsync(userId);
         if (user == null)

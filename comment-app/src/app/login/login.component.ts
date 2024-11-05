@@ -27,8 +27,7 @@ export class LoginComponent {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
-        this.authService.setLoggedIn(true);
-        this.authService.setUserId(response.userId);
+        this.authService.setToken(response.token); // Збереження токена
         this.router.navigate(['/']);
       },
       error: (error) => {
@@ -37,4 +36,5 @@ export class LoginComponent {
       }
     });
   }
+
 }
