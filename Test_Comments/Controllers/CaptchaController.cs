@@ -20,6 +20,7 @@ namespace Test_Comments.Controllers
             string captchaCode = GenerateCaptchaCode();
             HttpContext.Session.SetString("CaptchaCode", captchaCode);
             
+            Console.WriteLine( HttpContext.Session.GetString("CaptchaCode"));
             
             using (Bitmap bitmap = new Bitmap(Width, Height))
             {

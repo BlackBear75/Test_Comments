@@ -12,8 +12,8 @@ using Test_Comments.Configuration;
 namespace Test_Comments.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241104183610_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241106101018_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -74,14 +74,6 @@ namespace Test_Comments.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Captcha")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CommentIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
@@ -95,6 +87,9 @@ namespace Test_Comments.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("RecordId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -105,6 +100,8 @@ namespace Test_Comments.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RecordId");
 
                     b.ToTable("Records");
                 });
@@ -143,6 +140,18 @@ namespace Test_Comments.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Test_Comments.Entities.RecordGroup.Record", b =>
+                {
+                    b.HasOne("Test_Comments.Entities.RecordGroup.Record", null)
+                        .WithMany("Comments")
+                        .HasForeignKey("RecordId");
+                });
+
+            modelBuilder.Entity("Test_Comments.Entities.RecordGroup.Record", b =>
+                {
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }

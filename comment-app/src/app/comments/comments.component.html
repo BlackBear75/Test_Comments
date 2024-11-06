@@ -11,15 +11,14 @@
 
     <div *ngIf="record.showCommentField" class="comment-form">
       <input type="text" [(ngModel)]="record.commentText" placeholder="Ваш коментар" />
-      <button (click)="addComment(record.id, record.commentText); record.showCommentField = false">Додати коментар</button>
+      <button (click)="addComment(record.id, record.commentText)">Додати коментар</button>
       <button (click)="cancelComment(record)">Відмінити</button>
     </div>
 
     <div class="comments">
-      <div *ngFor="let comment of record.comments" class="comment">
-        <strong>{{ comment.userName }}</strong> <span>{{ comment.date | date: 'short' }}</span>
-        <p>{{ comment.text }}</p>
-      </div>
+      <ng-container *ngFor="let comment of record.comments">
+        <app-comment-item [comment]="comment" (addReply)="addComment(record.id, $event)"></app-comment-item>
+      </ng-container>
     </div>
   </div>
 

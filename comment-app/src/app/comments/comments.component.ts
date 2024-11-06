@@ -1,8 +1,10 @@
+// comments.component.ts
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RecordService } from '../services/record.service';
 import { FormsModule } from '@angular/forms';
+import { CommentItemComponent } from '../comment-item/comment-item.component';
 
 export interface IRecord {
   id: number;
@@ -16,19 +18,20 @@ export interface IRecord {
   captcha?: string;
 }
 
-
-
 export interface IComment {
   id: number;
   userName: string;
   text: string;
   date: string | Date;
+  comments?: IComment[];
+  showCommentField?: boolean;
+  commentText?: string;
 }
 
 @Component({
   selector: 'app-comments',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
+  imports: [RouterModule, CommonModule, FormsModule, CommentItemComponent],
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.css']
 })
@@ -71,24 +74,24 @@ export class CommentsComponent implements OnInit {
     });
   }
 
+  // Метод для додавання коментаря до запису або коментаря
   addComment(recordId: number, commentText: string | undefined) {
-    if (!commentText) return; // Переконуємось, що текст коментаря не пустий та не undefined
+    if (!commentText) return;
 
-    const newComment: IComment = {
-      id: Math.random(),
-      userName: 'Поточний користувач',
-      text: commentText,
-      date: new Date()
-    };
-
-    const record = this.records.find(r => r.id === recordId);
-    if (record) {
-      record.comments.push(newComment);
-      record.commentText = '';
-      record.showCommentField = false;
-    }
+    this.recordService.addComment(recordId, commentText).subscribe({
+      next: (savedComment) => {
+        const record = this.records.find(r => r.id === recordId);
+        if (record) {
+          record.comments.push(savedComment);
+          record.commentText = '';
+          record.showCommentField = false;
+        }
+      },
+      error: (error) => {
+        console.error('Помилка при додаванні коментаря:', error);
+      }
+    });
   }
-
 
   cancelComment(record: IRecord) {
     record.showCommentField = false;

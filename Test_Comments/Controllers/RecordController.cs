@@ -49,7 +49,6 @@ namespace Test_Comments.Controllers
                 UserName = user.Name,
                 Email = user.Email,
                 Text = request.Text,
-                Captcha = request.Captcha
             };
 
             var result = await _recordService.AddRecordAsync(record);
@@ -63,30 +62,23 @@ namespace Test_Comments.Controllers
         }
 
         [HttpPost("{recordId}/add-comment")]
-        public async Task<IActionResult> AddComment(Guid recordId, [FromBody] Record comment)
+        public async Task<IActionResult> AddComment(Guid recordId, [FromBody] CommentRequest request)
         {
-            if (comment == null)
-            {
-                return BadRequest("Коментар не може бути пустим");
-            }
-
             var userId = User.FindFirst("userId")?.Value; 
             if (userId == null)
             {
                 return Unauthorized("Невідомий користувач");
             }
-
             var user = await _userService.GetUserAsync(Guid.Parse(userId));
             if (user == null)
             {
                 return NotFound("Користувача не знайдено");
             }
-
-            comment.UserName = user.Name; 
-            var result = await _recordService.AddCommentAsync(recordId, comment);
+        
+            var result = await _recordService.AddCommentAsync(recordId, request.Text,user.Name);
             if (result.Success)
             {
-                return Ok(comment); // Повертаємо збережений коментар
+                return Ok(result); 
             }
 
             return BadRequest(result.Message);
@@ -105,5 +97,8 @@ namespace Test_Comments.Controllers
             var totalCount = await _recordService.GetTotalRecordsCountAsync(); 
             return Ok(totalCount);
         }
+    }public class CommentRequest
+    {
+        public string Text { get; set; }
     }
 }

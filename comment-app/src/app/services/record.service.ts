@@ -1,3 +1,4 @@
+// record.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -19,15 +20,15 @@ export class RecordService {
     return this.http.post(`${this.apiUrl}/add`, record, { headers, withCredentials: true });
   }
 
-
   getRecords(page: number, pageSize: number): Observable<IRecord[]> {
     return this.http.get<IRecord[]>(`${this.apiUrl}/paged`, {
-      params: {
-        page: page.toString(),
-        pageSize: pageSize.toString()
-      },
+      params: { page: page.toString(), pageSize: pageSize.toString() },
       withCredentials: true
     });
+  }
+
+  getRecordsCount(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/count`, { withCredentials: true });
   }
 
   getCaptchaImage(): Observable<Blob> {
@@ -37,11 +38,10 @@ export class RecordService {
     });
   }
 
-  getRecordsCount(): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/count`, { withCredentials: true });
+
+  addComment(recordId: number, commentText: string): Observable<IComment> {
+    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, { text: commentText }, { withCredentials: true });
   }
 
-  addComment(recordId: number, comment: IComment): Observable<IComment> {
-    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, comment, { withCredentials: true });
-  }
+
 }

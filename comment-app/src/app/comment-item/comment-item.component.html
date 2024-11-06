@@ -1,0 +1,18 @@
+<div class="comment">
+  <strong>{{ comment.userName }}</strong> <span>{{ comment.date | date: 'short' }}</span>
+  <p>{{ comment.text }}</p>
+
+  <div *ngIf="!comment.showCommentField">
+    <button (click)="comment.showCommentField = true">Відповісти</button>
+  </div>
+
+  <div *ngIf="comment.showCommentField" class="comment-form">
+    <input type="text" [(ngModel)]="comment.commentText" placeholder="Ваш коментар" />
+    <button (click)="onAddReply(comment.commentText)">Додати коментар</button>
+    <button (click)="comment.showCommentField = false">Відмінити</button>
+  </div>
+
+  <div class="replies" *ngIf="comment.comments?.length">
+    <app-comment-item *ngFor="let reply of comment.comments" [comment]="reply" (addReply)="onAddReply($event)"></app-comment-item>
+  </div>
+</div>

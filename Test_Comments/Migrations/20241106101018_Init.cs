@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Test_Comments.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -38,9 +38,8 @@ namespace Test_Comments.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Captcha = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    CommentIds = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RecordId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Deleted = table.Column<bool>(type: "bit", nullable: false),
                     DeletionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -48,6 +47,11 @@ namespace Test_Comments.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Records", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Records_Records_RecordId",
+                        column: x => x.RecordId,
+                        principalTable: "Records",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -67,6 +71,11 @@ namespace Test_Comments.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Records_RecordId",
+                table: "Records",
+                column: "RecordId");
         }
 
         /// <inheritdoc />

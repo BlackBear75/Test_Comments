@@ -13,7 +13,7 @@ namespace Test_Comments.Services
         Task<List<Record>> GetAllRecordsAsync();
         Task<List<Record>> GetRecordsAsync(int skip, int take);
         Task<int> GetTotalRecordsCountAsync();
-        Task<Response> AddCommentAsync(Guid recordId, Record comment); // Додаємо метод для додавання коментаря
+        Task<Response> AddCommentAsync(Guid recordId, string? comment,string userName); 
     }
 
     public class RecordService : IRecordService
@@ -29,7 +29,7 @@ namespace Test_Comments.Services
         {
             try
             {
-                await _recordRepository.InsertOneAsync(request); // Зберігаємо запис у базі даних
+                await _recordRepository.InsertOneAsync(request); 
 
                 return new Response
                 {
@@ -46,6 +46,7 @@ namespace Test_Comments.Services
                 };
             }
         }
+        
 
         public async Task<List<Record>> GetAllRecordsAsync()
         {
@@ -55,7 +56,7 @@ namespace Test_Comments.Services
 
         public async Task<List<Record>> GetRecordsAsync(int skip, int take)
         {
-            var result = await _recordRepository.GetWithSkipAsync(skip, take); 
+            var result = await _recordRepository.GetWithSkipAsync(skip-1, take); 
             return result.ToList();
         }
 
@@ -64,22 +65,30 @@ namespace Test_Comments.Services
             return await _recordRepository.CountAsync(record => true); 
         }
 
-        public async Task<Response> AddCommentAsync(Guid recordId, Record comment)
+        public async Task<Response> AddCommentAsync(Guid recordId, string? commentText, string userName)
         {
             try
             {
-                var record = await _recordRepository.FindByIdAsync(recordId); 
+                var record = await _recordRepository.FindByIdAsync(recordId);
                 if (record == null)
                 {
                     return new Response
                     {
                         Success = false,
-                        Message = "Запис не знайдено"
+                        Message = "Запис або коментар не знайдено"
                     };
                 }
 
-                //record.Comments.Add(comment);
-                await _recordRepository.UpdateOneAsync(record); 
+                var newComment = new Record
+                {
+                    UserName = userName,
+                    Text = commentText,
+                    Comments = new List<Record>()
+                };
+
+                record.Comments.Add(newComment);
+        
+                await _recordRepository.UpdateOneAsync(record);
 
                 return new Response
                 {
@@ -96,7 +105,10 @@ namespace Test_Comments.Services
                 };
             }
         }
+
+
     }
+    
 
     public class Response
     {
