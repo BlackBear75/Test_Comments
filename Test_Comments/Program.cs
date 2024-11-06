@@ -30,7 +30,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseCors("AllowAngularApp");
+app.UseCors("AllowSpecificOrigin");
+app.UseSession(); 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

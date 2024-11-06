@@ -1,53 +1,52 @@
 .comments-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1rem;
+  padding: 20px;
 }
 
-.add-record-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-}
-
-.add-record-button {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  padding: 0.5rem 1rem;
-  background-color: #1a73e8;
-  color: white;
-  border: none;
+.record {
+  border: 1px solid #ddd;
   border-radius: 4px;
-  cursor: pointer;
-  z-index: 1000;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
-.record-form, .comment-form {
-  display: flex;
-  flex-direction: column;
-  margin-top: 1rem;
+.comment-form {
+  margin-top: 10px;
 }
 
-.record-form input, .record-form textarea, .comment-form input, .comment-form textarea {
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
+.comment-form input {
+  margin-right: 5px;
+  padding: 5px;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
 
+.comment {
+  margin-top: 5px;
+  padding: 5px;
+  border-left: 2px solid #1a73e8;
+  background-color: #f9f9f9;
+}
+
 .pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
+  margin-top: 20px;
 }
 
 .pagination button {
-  margin: 0.5rem;
-  padding: 0.5rem 1rem;
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: none;
   background-color: #1a73e8;
   color: white;
-  border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.no-records {
+  text-align: center;
+  color: red;
 }

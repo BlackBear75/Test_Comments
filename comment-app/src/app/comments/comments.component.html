@@ -1,28 +1,34 @@
 <div class="comments-container">
-  <h2>Записи та коментарі</h2>
-
   <div *ngFor="let record of records" class="record">
     <div class="record-header">
-      <strong>{{ record.userName }}</strong> <span>{{ record.date }}</span>
+      <strong>{{ record.userName }}</strong> <span>{{ record.date | date: 'short' }}</span>
     </div>
     <p>{{ record.text }}</p>
 
-    <button (click)="toggleCommentForm(record)" class="add-comment-button">Додати коментар</button>
+    <div *ngIf="!record.showCommentField">
+      <button (click)="record.showCommentField = true">Додати коментар</button>
+    </div>
 
-    <form *ngIf="record.showCommentForm" (ngSubmit)="addComment(record)" class="comment-form">
-      <input type="text" [(ngModel)]="record.newComment.userName" name="userName" placeholder="Ваше ім'я" required />
-      <textarea [(ngModel)]="record.newComment.text" name="text" placeholder="Ваш коментар" required></textarea>
-      <button type="submit">Додати коментар</button>
-    </form>
+    <div *ngIf="record.showCommentField" class="comment-form">
+      <input type="text" [(ngModel)]="record.commentText" placeholder="Ваш коментар" />
+      <button (click)="addComment(record.id, record.commentText); record.showCommentField = false">Додати коментар</button>
+      <button (click)="cancelComment(record)">Відмінити</button>
+    </div>
 
-    <div *ngFor="let comment of record.comments" class="comment">
-      <strong>{{ comment.userName }}</strong> <span>{{ comment.date }}</span>
-      <p>{{ comment.text }}</p>
+    <div class="comments">
+      <div *ngFor="let comment of record.comments" class="comment">
+        <strong>{{ comment.userName }}</strong> <span>{{ comment.date | date: 'short' }}</span>
+        <p>{{ comment.text }}</p>
+      </div>
     </div>
   </div>
 
+  <div *ngIf="records.length === 0" class="no-records">
+    <p>Записи не знайдено.</p>
+  </div>
+
   <div *ngIf="isPaginationVisible()" class="pagination">
-    <button (click)="prevPage()">Попередня</button>
-    <button (click)="nextPage()">Наступна</button>
+    <button (click)="prevPage()" [disabled]="currentPage === 1">Попередня</button>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages">Наступна</button>
   </div>
 </div>

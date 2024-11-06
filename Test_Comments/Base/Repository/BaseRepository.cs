@@ -57,10 +57,16 @@ public class BaseRepository<TDocument> : IBaseRepository<TDocument> where TDocum
         return await _dbSet.CountAsync(filterExpression);
     }
 
-    // Реалізація нових методів
     public async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression)
     {
         return await _dbSet.Where(filterExpression).Where(d => !d.Deleted).FirstOrDefaultAsync();
+    }
+    public async Task<IEnumerable<TDocument>> GetWithSkipAsync(int skip, int take)
+    {
+        return await _dbSet.Where(d => !d.Deleted) 
+            .Skip(skip) 
+            .Take(take) 
+            .ToListAsync(); 
     }
 
     public async Task<bool> ExistsAsync(Expression<Func<TDocument, bool>> filterExpression)

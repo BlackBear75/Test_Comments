@@ -1,83 +1,105 @@
 import { Component, OnInit } from '@angular/core';
-import {RouterModule} from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RecordService } from '../services/record.service';
+import { FormsModule } from '@angular/forms';
 
-interface Comment {
-  userName: string;
-  text: string;
-  date: Date;
-}
-
-interface Record {
+export interface IRecord {
   id: number;
   userName: string;
   email: string;
   text: string;
-  date: Date;
-  comments: Comment[];
-  showCommentForm?: boolean;
-  newComment?: Partial<Comment>;
+  date: string | Date;
+  comments: IComment[];
+  showCommentField?: boolean;
+  commentText?: string;
+  captcha?: string;
+}
+
+
+
+export interface IComment {
+  id: number;
+  userName: string;
+  text: string;
+  date: string | Date;
 }
 
 @Component({
   selector: 'app-comments',
   standalone: true,
-  imports: [RouterModule,FormsModule],
+  imports: [RouterModule, CommonModule, FormsModule],
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.css']
 })
 export class CommentsComponent implements OnInit {
-  records: Record[] = [];
-  newRecord: Partial<Record> = {};
-  showNewRecordForm: boolean = false;
+  records: IRecord[] = [];
   currentPage: number = 1;
-  recordsPerPage: number = 10;
+  recordsPerPage: number = 25;
+  totalRecords: number = 0;
+
+  constructor(private recordService: RecordService) {}
 
   ngOnInit() {
     this.loadRecords();
+    this.loadTotalRecordsCount();
   }
 
   loadRecords() {
-    this.records = [];
+    this.recordService.getRecords(this.currentPage, this.recordsPerPage).subscribe({
+      next: (data) => {
+        this.records = data.map(record => ({
+          ...record,
+          showCommentField: false,
+          commentText: ''
+        }));
+      },
+      error: (error) => {
+        console.error('Помилка завантаження записів:', error);
+      }
+    });
   }
 
-  toggleNewRecordForm() {
-    this.showNewRecordForm = !this.showNewRecordForm;
+  loadTotalRecordsCount() {
+    this.recordService.getRecordsCount().subscribe({
+      next: (count) => {
+        this.totalRecords = count;
+      },
+      error: (error) => {
+        console.error('Помилка завантаження кількості записів:', error);
+      }
+    });
   }
 
-  addRecord() {
-    const record: Record = {
-      id: Date.now(),
-      userName: this.newRecord.userName!,
-      email: this.newRecord.email!,
-      text: this.newRecord.text!,
-      date: new Date(),
-      comments: []
-    };
-    this.records.push(record);
-    this.newRecord = {};
-    this.showNewRecordForm = false;
-  }
+  addComment(recordId: number, commentText: string | undefined) {
+    if (!commentText) return; // Переконуємось, що текст коментаря не пустий та не undefined
 
-  toggleCommentForm(record: Record) {
-    record.showCommentForm = !record.showCommentForm;
-    record.newComment = {};
-  }
-
-  addComment(record: Record) {
-    const comment: Comment = {
-      userName: record.newComment!.userName!,
-      text: record.newComment!.text!,
+    const newComment: IComment = {
+      id: Math.random(),
+      userName: 'Поточний користувач',
+      text: commentText,
       date: new Date()
     };
-    record.comments.push(comment);
-    record.showCommentForm = false;
-    record.newComment = {};
+
+    const record = this.records.find(r => r.id === recordId);
+    if (record) {
+      record.comments.push(newComment);
+      record.commentText = '';
+      record.showCommentField = false;
+    }
+  }
+
+
+  cancelComment(record: IRecord) {
+    record.showCommentField = false;
+    record.commentText = '';
   }
 
   nextPage() {
-    this.currentPage++;
-    this.loadRecords();
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadRecords();
+    }
   }
 
   prevPage() {
@@ -87,7 +109,11 @@ export class CommentsComponent implements OnInit {
     }
   }
 
+  get totalPages(): number {
+    return Math.ceil(this.totalRecords / this.recordsPerPage);
+  }
+
   isPaginationVisible(): boolean {
-    return this.records.length > this.recordsPerPage;
+    return this.totalRecords > this.recordsPerPage;
   }
 }

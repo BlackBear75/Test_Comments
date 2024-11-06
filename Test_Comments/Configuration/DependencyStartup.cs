@@ -46,7 +46,7 @@ public static class DependencyStartup
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRecordService, RecordService>();
         
-
+      
       
     }
     private static void AddInfrastructure(IServiceCollection services)
@@ -61,14 +61,29 @@ public static class DependencyStartup
     }
     private static void AddCorsPolicy(IServiceCollection services)
     {
+        services.AddDistributedMemoryCache();
+        
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAngularApp", builder =>
-            {
-                builder.WithOrigins("http://localhost:4200") 
+            options.AddPolicy("AllowSpecificOrigin",
+                builder =>
+                    builder.WithOrigins("http://localhost:4200") 
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
+                    .AllowAnyMethod()
+                    .AllowCredentials());
+            
         });
+        
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            
+        });
+
+        services.AddControllers();
     }
 }

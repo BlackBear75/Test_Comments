@@ -1,29 +1,26 @@
 <div class="add-record-container">
   <h2>Додати запис</h2>
-  <form (ngSubmit)="onSubmit()" #recordForm="ngForm">
 
-    <div class="form-group">
-      <label for="captcha">CAPTCHA:</label>
-      <input
-        type="text"
-        id="captcha"
-        name="captcha"
-        [(ngModel)]="record.captcha"
-        required
-      />
-      <img [src]="captchaImageUrl" alt="CAPTCHA" />
+  <form (ngSubmit)="onSubmit()">
+    <div>
+      <label for="text">Текст запису:</label>
+      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+      <textarea id="text" [(ngModel)]="record.text" name="text" required></textarea>
     </div>
 
-    <div class="form-group">
-      <label for="text">Текст:</label>
-      <textarea
-        id="text"
-        name="text"
-        [(ngModel)]="record.text"
-        required
-      ></textarea>
+    <div class="captcha-container">
+      <img [src]="captchaUrl" alt="CAPTCHA" />
+      <input type="text" [(ngModel)]="captcha" name="captcha" placeholder="Введіть CAPTCHA" required />
+      <button type="button" (click)="refreshCaptcha()">Оновити CAPTCHA</button>
     </div>
 
-    <button type="submit" [disabled]="!recordForm.valid">Додати запис</button>
+    <button type="submit" [disabled]="!record.text || !captcha" class="submit-button">Додати</button>
   </form>
+
+  <div *ngIf="isModalVisible" class="modal">
+    <div class="modal-content">
+      <p>Запис успішно додано!</p>
+      <button (click)="closeModal()">Закрити</button>
+    </div>
+  </div>
 </div>

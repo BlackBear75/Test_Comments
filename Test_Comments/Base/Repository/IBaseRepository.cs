@@ -9,6 +9,8 @@ public interface IBaseRepository<TDocument> where TDocument : Document
     Task InsertOneAsync(TDocument document);
     Task UpdateOneAsync(TDocument document);
     Task DeleteOneAsync(Guid id);
+    
+    Task<IEnumerable<TDocument>> GetWithSkipAsync(int skip, int take); 
     Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> filterExpression);
     Task<int> CountAsync(Expression<Func<TDocument, bool>> filterExpression);
 
