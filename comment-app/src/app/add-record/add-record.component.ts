@@ -25,6 +25,11 @@ export class AddRecordComponent {
   successMessage: string | null = null;
   isModalVisible = false;
 
+  file: File | null = null;
+  filePreviewUrl: string | ArrayBuffer | null = null;
+  filePreviewText: string | null = null;
+  isImage: boolean = false;
+
   constructor(private recordService: RecordService, private cdr: ChangeDetectorRef) {
     this.refreshCaptcha();
   }
@@ -35,16 +40,84 @@ export class AddRecordComponent {
     });
   }
 
+  onFileSelected(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+      const file = target.files[0];
+      const fileSizeLimit = 100 * 1024; // 100 KB
+
+      if (file.size > fileSizeLimit) {
+        this.errorMessage = 'Файл не повинен перевищувати 100 КБ';
+        this.file = null;
+        this.filePreviewUrl = null;
+        this.filePreviewText = null;
+        return;
+      }
+
+      const fileType = file.type;
+      if (fileType.startsWith('image/') || fileType === 'text/plain') {
+        this.file = file;
+        this.isImage = fileType.startsWith('image/');
+        this.errorMessage = null;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (this.isImage) {
+            const img = new Image();
+            img.src = reader.result as string;
+            img.onload = () => {
+              if (img.width > 320 || img.height > 240) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const scale = Math.min(320 / img.width, 240 / img.height);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                this.filePreviewUrl = canvas.toDataURL('image/jpeg');
+              } else {
+                this.filePreviewUrl = reader.result;
+              }
+              this.cdr.detectChanges();
+            };
+          } else {
+            this.filePreviewText = reader.result as string;
+            this.filePreviewUrl = null;
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.errorMessage = 'Допустимі формати файлів: JPG, GIF, PNG, TXT';
+        this.file = null;
+        this.filePreviewUrl = null;
+        this.filePreviewText = null;
+      }
+    }
+  }
+
+
   onSubmit() {
+    if (!this.file) {
+      this.errorMessage = 'Будь ласка, додайте файл перед відправкою.';
+      return;
+    }
+
     this.errorMessage = null;
     this.successMessage = null;
 
-    this.recordService.addRecord({ ...this.record, captcha: this.captcha }).subscribe({
+    const formData = new FormData();
+    formData.append('text', this.record.text);
+    formData.append('captcha', this.captcha);
+    formData.append('file', this.file);
+
+    this.recordService.addRecord(formData).subscribe({
       next: (response) => {
         if (response.success) {
           this.successMessage = response.message;
           this.record.text = '';
           this.captcha = '';
+          this.file = null;
+          this.filePreviewUrl = null;
+          this.filePreviewText = null;
           this.refreshCaptcha();
           this.isModalVisible = true;
         } else {
@@ -53,9 +126,6 @@ export class AddRecordComponent {
         }
       },
       error: (error) => {
-        console.error('Помилка додавання запису:', error);
-        console.log('Error message from server:', error.error?.message);
-
         this.errorMessage = error.error?.message || 'Сталася помилка. Спробуйте ще раз.';
         this.refreshCaptcha();
       }

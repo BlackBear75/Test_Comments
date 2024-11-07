@@ -7,6 +7,21 @@
       </div>
       <p class="card-text">{{ record.text }}</p>
 
+      <!-- Відображення файлу -->
+      <div *ngIf="record.fileType">
+        <div *ngIf="record.fileType.startsWith('image/')">
+          <!-- Зображення з Lightbox -->
+          <a [href]="record.fileData" data-lightbox="record-image" data-title="{{ record.fileName }}">
+            <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
+          </a>
+        </div>
+        <div *ngIf="record.fileType === 'text/plain'" class="mt-2">
+          <!-- Текстовий файл -->
+          <pre class="text-muted">{{ record.fileData }}</pre>
+        </div>
+      </div>
+
+      <!-- Додати коментарі -->
       <div *ngIf="!record.showCommentField" class="mb-2">
         <button class="btn btn-primary btn-sm" (click)="record.showCommentField = true">Додати коментар</button>
       </div>

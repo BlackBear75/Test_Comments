@@ -13,8 +13,12 @@ public class Record : Document
     [MaxLength(500)]
     public string Text { get; set; }
 
-    public Guid? ParentRecordId { get; set; } 
+    public Guid? ParentRecordId { get; set; }
 
     [NotMapped]
     public List<Record> Comments { get; set; } = new List<Record>();
+
+    public string? FileName { get; set; }
+    public string? FileType { get; set; } 
+    public byte[]? FileData { get; set; } 
 }

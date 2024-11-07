@@ -1,11 +1,9 @@
-// record.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { AuthService } from './auth.service';
 import { IRecord, IComment } from '../comments/comments.component';
-import {RecordRequest} from '../add-record/add-record.component';
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +13,9 @@ export class RecordService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  addRecord(record: RecordRequest): Observable<any> {
+  addRecord(formData: FormData): Observable<any> {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getToken()}`);
-    return this.http.post(`${this.apiUrl}/add`, record, { headers, withCredentials: true });
+    return this.http.post(`${this.apiUrl}/add`, formData, { headers, withCredentials: true });
   }
 
   getRecords(page: number, pageSize: number): Observable<IRecord[]> {
@@ -38,25 +36,15 @@ export class RecordService {
     });
   }
 
-
   addComment(recordId: number, commentText: string, parentCommentId?: number): Observable<IComment> {
     const payload: any = { text: commentText };
-
-    if (parentCommentId !== undefined) {  // Додайте перевірку
+    if (parentCommentId !== undefined) {
       payload.parentCommentId = parentCommentId;
     }
-
-    console.log('Payload:', payload); // Додайте цей вивід, щоб переконатися, що `parentCommentId` є в payload
     return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, payload, { withCredentials: true });
   }
-
-
-
-
 
   getCommentsHierarchy(recordId: number): Observable<IComment[]> {
     return this.http.get<IComment[]>(`${this.apiUrl}/${recordId}/comments-hierarchy`, { withCredentials: true });
   }
-
-
 }

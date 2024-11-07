@@ -16,6 +16,20 @@
       ></textarea>
     </div>
 
+    <div class="form-group">
+      <label for="file">Завантажити файл:</label>
+      <input type="file" (change)="onFileSelected($event)" class="form-control" />
+      <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 кб)</small>
+    </div>
+
+    <div *ngIf="filePreviewUrl && isImage" class="preview-container mt-3">
+      <img [src]="filePreviewUrl" alt="Preview" class="img-thumbnail" />
+    </div>
+
+    <div *ngIf="filePreviewText && !isImage" class="preview-container mt-3">
+      <textarea class="form-control" rows="5" readonly>{{ filePreviewText }}</textarea>
+    </div>
+
     <div class="captcha-container form-group d-flex align-items-center">
       <img [src]="captchaUrl" alt="CAPTCHA" class="captcha-image mr-3" />
       <input
@@ -29,17 +43,6 @@
       <button type="button" (click)="refreshCaptcha()" class="btn btn-secondary btn-sm mr-2">Оновити CAPTCHA</button>
     </div>
 
-    <button type="submit" [disabled]="!record.text || !captcha" class="btn btn-primary btn-block mt-3">Додати</button>
+    <button type="submit" [disabled]="!record.text || !captcha || !file" class="btn btn-primary btn-block mt-3">Додати</button>
   </form>
-
-  <div *ngIf="isModalVisible" class="modal fade show d-block" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-body text-center">
-          <p>Запис успішно додано!</p>
-          <button (click)="closeModal()" class="btn btn-primary">Закрити</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>

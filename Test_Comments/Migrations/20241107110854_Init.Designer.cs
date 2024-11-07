@@ -12,7 +12,7 @@ using Test_Comments.Configuration;
 namespace Test_Comments.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241107090627_Init")]
+    [Migration("20241107110854_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -41,6 +41,18 @@ namespace Test_Comments.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("FileData")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

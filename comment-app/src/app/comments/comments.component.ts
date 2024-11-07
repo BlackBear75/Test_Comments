@@ -15,7 +15,11 @@ export interface IRecord {
   showCommentField?: boolean;
   commentText?: string;
   captcha?: string;
+  fileName?: string;
+  fileType?: string;
+  fileData?: string | null;
 }
+
 
 export interface IComment {
   id: number;
@@ -53,7 +57,8 @@ export class CommentsComponent implements OnInit {
         this.records = data.map(record => ({
           ...record,
           showCommentField: false,
-          commentText: ''
+          commentText: '',
+          fileData: record.fileType && record.fileData ? this.processFileData(record.fileData, record.fileType) : null
         }));
       },
       error: (error) => {
@@ -71,6 +76,13 @@ export class CommentsComponent implements OnInit {
         console.error('Помилка завантаження кількості записів:', error);
       }
     });
+  }
+
+  processFileData(fileData: string, fileType: string): string {
+    if (fileType.startsWith('image/')) {
+      return `data:${fileType};base64,${fileData}`;
+    }
+    return atob(fileData);
   }
 
   addComment(recordId: number, commentText: string | undefined) {
@@ -96,10 +108,6 @@ export class CommentsComponent implements OnInit {
   }
 
   addNestedComment(recordId: number, { text, parentCommentId }: { text: string, parentCommentId: number }) {
-    console.log('recordId:', recordId);
-    console.log('parentCommentId:', parentCommentId);
-    console.log('text:', text);
-
     this.recordService.addComment(parentCommentId, text, recordId).subscribe({
       next: (savedComment) => {
         const record = this.records.find(r => r.id === recordId);
@@ -120,12 +128,6 @@ export class CommentsComponent implements OnInit {
       }
     });
   }
-
-
-
-
-
-
 
   findCommentById(comments: IComment[], commentId: number): IComment | undefined {
     for (let comment of comments) {

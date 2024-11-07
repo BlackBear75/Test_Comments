@@ -34,6 +34,7 @@ public class RecordService : IRecordService
         }
     }
 
+
     public async Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid?  parentId)
     {
         try
@@ -62,25 +63,22 @@ public class RecordService : IRecordService
         }
     }
 
-  public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take)
-{
-    // Отримуємо кореневі записи
-    var pagedRootRecords = await _recordRepository.FilterBySkipAsync(r => r.ParentRecordId == null, skip, take);
-
-    var rootRecordIds = pagedRootRecords.Select(r => r.Id).ToList();
-
-    var allCommentsForRootRecords = await GetAllCommentsRecursively(rootRecordIds);
-
-    var commentsDict = allCommentsForRootRecords.GroupBy(c => c.ParentRecordId)
-        .ToDictionary(g => g.Key, g => g.ToList());
-
-    foreach (var record in pagedRootRecords)
+    public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take)
     {
-        record.Comments = BuildCommentsHierarchy(record.Id, commentsDict);
+        var pagedRootRecords = await _recordRepository.FilterBySkipAsync(r => r.ParentRecordId == null, skip, take);
+        var rootRecordIds = pagedRootRecords.Select(r => r.Id).ToList();
+        var allCommentsForRootRecords = await GetAllCommentsRecursively(rootRecordIds);
+        var commentsDict = allCommentsForRootRecords.GroupBy(c => c.ParentRecordId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var record in pagedRootRecords)
+        {
+            record.Comments = BuildCommentsHierarchy(record.Id, commentsDict);
+        }
+
+        return pagedRootRecords.ToList();
     }
 
-    return pagedRootRecords.ToList();
-}
 
 private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)
 {
@@ -113,6 +111,7 @@ private List<Record> BuildCommentsHierarchy(Guid recordId, Dictionary<Guid?, Lis
 
     return comments;
 }
+
 
     public async Task<int> GetTotalRootRecordsCountAsync()
     {

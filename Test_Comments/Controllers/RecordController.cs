@@ -21,7 +21,8 @@ public class RecordController : ControllerBase
 
     [Authorize]
     [HttpPost("add")]
-    public async Task<IActionResult> AddRecord([FromBody] RecordRequest request)
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> AddRecord([FromForm] RecordRequest request, [FromForm] IFormFile file)
     {
         var storedCaptcha = HttpContext.Session.GetString("CaptchaCode");
         if (string.IsNullOrWhiteSpace(storedCaptcha) || storedCaptcha != request.Captcha)
@@ -45,12 +46,30 @@ public class RecordController : ControllerBase
         {
             UserName = user.Name,
             Email = user.Email,
-            Text = request.Text,
+            Text = request.Text
         };
+
+        if (file != null)
+        {
+            if (file.Length > 100 * 1024) 
+            {
+                return BadRequest(new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" });
+            }
+
+            record.FileName = file.FileName;
+            record.FileType = file.ContentType;
+
+            using (var ms = new MemoryStream())
+            {
+                await file.CopyToAsync(ms);
+                record.FileData = ms.ToArray();
+            }
+        }
 
         var result = await _recordService.AddRecordAsync(record);
         return result.Success ? Ok(result) : BadRequest(result);
     }
+
 
     [HttpPost("{recordId}/add-comment")]
     public async Task<IActionResult> AddComment(Guid recordId, [FromBody] CommentRequest request)
