@@ -7,16 +7,17 @@
       </div>
       <p class="card-text">{{ record.text }}</p>
 
-      <!-- Відображення файлу -->
       <div *ngIf="record.fileType">
         <div *ngIf="record.fileType.startsWith('image/')">
           <!-- Зображення з Lightbox -->
-          <a [href]="record.fileData" data-lightbox="record-image" data-title="{{ record.fileName }}">
-            <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
-          </a>
+          <div *ngIf="record.fileType && record.fileType.startsWith('image/')">
+            <a [href]="record.fileData" data-lightbox="record-image" data-title="{{ record.fileName }}">
+              <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
+            </a>
+          </div>
+
         </div>
         <div *ngIf="record.fileType === 'text/plain'" class="mt-2">
-          <!-- Текстовий файл -->
           <pre class="text-muted">{{ record.fileData }}</pre>
         </div>
       </div>
@@ -55,3 +56,4 @@
     <button class="btn btn-primary" (click)="nextPage()" [disabled]="currentPage === totalPages">Наступна</button>
   </div>
 </div>
+<script src="node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js"></script>

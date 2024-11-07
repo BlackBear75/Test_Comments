@@ -19,7 +19,7 @@ export interface IRecord {
   fileType?: string;
   fileData?: string | null;
 }
-
+declare const lightbox: any;
 
 export interface IComment {
   id: number;
@@ -46,10 +46,19 @@ export class CommentsComponent implements OnInit {
 
   constructor(private recordService: RecordService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadRecords();
     this.loadTotalRecordsCount();
+
+    // Ініціалізація параметрів Lightbox
+    if (typeof lightbox !== 'undefined') {
+      lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true
+      });
+    }
   }
+
 
   loadRecords() {
     this.recordService.getRecords(this.currentPage, this.recordsPerPage).subscribe({
@@ -80,10 +89,17 @@ export class CommentsComponent implements OnInit {
 
   processFileData(fileData: string, fileType: string): string {
     if (fileType.startsWith('image/')) {
-      return `data:${fileType};base64,${fileData}`;
+      const binary = atob(fileData);
+      const array = [];
+      for (let i = 0; i < binary.length; i++) {
+        array.push(binary.charCodeAt(i));
+      }
+      const blob = new Blob([new Uint8Array(array)], { type: fileType });
+      return URL.createObjectURL(blob);
     }
     return atob(fileData);
   }
+
 
   addComment(recordId: number, commentText: string | undefined) {
     if (!commentText) return;
