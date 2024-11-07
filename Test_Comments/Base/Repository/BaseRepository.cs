@@ -51,6 +51,16 @@ public class BaseRepository<TDocument> : IBaseRepository<TDocument> where TDocum
     {
         return await _dbSet.Where(filterExpression).Where(d => !d.Deleted).ToListAsync();
     }
+    
+    public async Task<IEnumerable<TDocument>> FilterBySkipAsync(Expression<Func<TDocument, bool>> filterExpression, int skip, int take)
+    {
+        return await _dbSet
+            .Where(filterExpression) 
+            .Skip(skip) 
+            .Take(take)
+            .ToListAsync();
+    }
+
 
     public async Task<int> CountAsync(Expression<Func<TDocument, bool>> filterExpression)
     {

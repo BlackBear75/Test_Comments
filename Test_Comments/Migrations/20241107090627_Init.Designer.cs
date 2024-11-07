@@ -12,7 +12,7 @@ using Test_Comments.Configuration;
 namespace Test_Comments.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241106101018_Init")]
+    [Migration("20241107090627_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -25,15 +25,50 @@ namespace Test_Comments.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Record", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("DeletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("ParentRecordId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Records");
+                });
+
             modelBuilder.Entity("Test_Comments.Entities.CommentGroup.Comment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Captcha")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("CommentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
@@ -48,11 +83,11 @@ namespace Test_Comments.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("HomePage")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("ParentCommentId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("PostedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<Guid>("RecordId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -64,46 +99,10 @@ namespace Test_Comments.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommentId");
 
                     b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("Test_Comments.Entities.RecordGroup.Record", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("DeletionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("RecordId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecordId");
-
-                    b.ToTable("Records");
                 });
 
             modelBuilder.Entity("Test_Comments.Entities.UserGroup.User", b =>
@@ -142,16 +141,16 @@ namespace Test_Comments.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Test_Comments.Entities.RecordGroup.Record", b =>
+            modelBuilder.Entity("Test_Comments.Entities.CommentGroup.Comment", b =>
                 {
-                    b.HasOne("Test_Comments.Entities.RecordGroup.Record", null)
-                        .WithMany("Comments")
-                        .HasForeignKey("RecordId");
+                    b.HasOne("Test_Comments.Entities.CommentGroup.Comment", null)
+                        .WithMany("Replies")
+                        .HasForeignKey("CommentId");
                 });
 
-            modelBuilder.Entity("Test_Comments.Entities.RecordGroup.Record", b =>
+            modelBuilder.Entity("Test_Comments.Entities.CommentGroup.Comment", b =>
                 {
-                    b.Navigation("Comments");
+                    b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,3 @@
-// comments.component.ts
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -24,8 +23,8 @@ export interface IComment {
   text: string;
   date: string | Date;
   comments?: IComment[];
-  showCommentField?: boolean;
-  commentText?: string;
+  showReplyField?: boolean;
+  replyText?: string;
 }
 
 @Component({
@@ -74,7 +73,6 @@ export class CommentsComponent implements OnInit {
     });
   }
 
-  // Метод для додавання коментаря до запису або коментаря
   addComment(recordId: number, commentText: string | undefined) {
     if (!commentText) return;
 
@@ -82,7 +80,11 @@ export class CommentsComponent implements OnInit {
       next: (savedComment) => {
         const record = this.records.find(r => r.id === recordId);
         if (record) {
-          record.comments.push(savedComment);
+          record.comments.push({
+            ...savedComment,
+            showReplyField: false,
+            replyText: ''
+          });
           record.commentText = '';
           record.showCommentField = false;
         }
@@ -91,6 +93,47 @@ export class CommentsComponent implements OnInit {
         console.error('Помилка при додаванні коментаря:', error);
       }
     });
+  }
+
+  addNestedComment(recordId: number, { text, parentCommentId }: { text: string, parentCommentId: number }) {
+    console.log('recordId:', recordId);
+    console.log('parentCommentId:', parentCommentId);
+    console.log('text:', text);
+
+    this.recordService.addComment(parentCommentId, text, recordId).subscribe({
+      next: (savedComment) => {
+        const record = this.records.find(r => r.id === recordId);
+        if (record) {
+          const parentComment = this.findCommentById(record.comments, parentCommentId);
+          if (parentComment) {
+            parentComment.comments = parentComment.comments || [];
+            parentComment.comments.push({
+              ...savedComment,
+              showReplyField: false,
+              replyText: ''
+            });
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Помилка при додаванні відповіді на коментар:', error);
+      }
+    });
+  }
+
+
+
+
+
+
+
+  findCommentById(comments: IComment[], commentId: number): IComment | undefined {
+    for (let comment of comments) {
+      if (comment.id === commentId) return comment;
+      const found = this.findCommentById(comment.comments || [], commentId);
+      if (found) return found;
+    }
+    return undefined;
   }
 
   cancelComment(record: IRecord) {

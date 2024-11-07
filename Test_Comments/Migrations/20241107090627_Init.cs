@@ -18,10 +18,10 @@ namespace Test_Comments.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    HomePage = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Captcha = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    PostedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RecordId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ParentCommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Deleted = table.Column<bool>(type: "bit", nullable: false),
                     DeletionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -29,6 +29,11 @@ namespace Test_Comments.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Comments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comments_Comments_CommentId",
+                        column: x => x.CommentId,
+                        principalTable: "Comments",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -39,7 +44,7 @@ namespace Test_Comments.Migrations
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    RecordId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ParentRecordId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Deleted = table.Column<bool>(type: "bit", nullable: false),
                     DeletionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -47,11 +52,6 @@ namespace Test_Comments.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Records", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Records_Records_RecordId",
-                        column: x => x.RecordId,
-                        principalTable: "Records",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -73,9 +73,9 @@ namespace Test_Comments.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Records_RecordId",
-                table: "Records",
-                column: "RecordId");
+                name: "IX_Comments_CommentId",
+                table: "Comments",
+                column: "CommentId");
         }
 
         /// <inheritdoc />

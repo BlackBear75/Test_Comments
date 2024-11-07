@@ -1,118 +1,129 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Test_Comments.Entities.RecordGroup;
 using Test_Comments.Entities.RecordGroup.Repository;
-using Test_Comments.Models.RecordModels;
 
-namespace Test_Comments.Services
+public interface IRecordService
 {
-    public interface IRecordService
+    Task<Response> AddRecordAsync(Record record);
+    Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email,  Guid?  parentId);
+    Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take);
+    Task<int> GetTotalRootRecordsCountAsync();
+}
+
+public class RecordService : IRecordService
+{
+    private readonly IRecordRepository<Record> _recordRepository;
+
+    public RecordService(IRecordRepository<Record> recordRepository)
     {
-        Task<Response> AddRecordAsync(Record request);
-        Task<List<Record>> GetAllRecordsAsync();
-        Task<List<Record>> GetRecordsAsync(int skip, int take);
-        Task<int> GetTotalRecordsCountAsync();
-        Task<Response> AddCommentAsync(Guid recordId, string? comment,string userName); 
+        _recordRepository = recordRepository;
     }
 
-    public class RecordService : IRecordService
+    public async Task<Response> AddRecordAsync(Record record)
     {
-        private readonly IRecordRepository<Record> _recordRepository;
-
-        public RecordService(IRecordRepository<Record> recordRepository)
+        try
         {
-            _recordRepository = recordRepository;
+            await _recordRepository.InsertOneAsync(record);
+            return new Response { Success = true, Message = "Запис успішно додано" };
         }
-
-        public async Task<Response> AddRecordAsync(Record request)
+        catch (Exception ex)
         {
-            try
-            {
-                await _recordRepository.InsertOneAsync(request); 
-
-                return new Response
-                {
-                    Success = true,
-                    Message = "Запис успішно додано"
-                };
-            }
-            catch (Exception ex)
-            {
-                return new Response
-                {
-                    Success = false,
-                    Message = $"Помилка: {ex.Message}"
-                };
-            }
+            return new Response { Success = false, Message = $"Помилка: {ex.Message}" };
         }
-        
-
-        public async Task<List<Record>> GetAllRecordsAsync()
-        {
-            var result = await _recordRepository.GetAllAsync(); 
-            return result.ToList();
-        }
-
-        public async Task<List<Record>> GetRecordsAsync(int skip, int take)
-        {
-            var result = await _recordRepository.GetWithSkipAsync(skip-1, take); 
-            return result.ToList();
-        }
-
-        public async Task<int> GetTotalRecordsCountAsync()
-        {
-            return await _recordRepository.CountAsync(record => true); 
-        }
-
-        public async Task<Response> AddCommentAsync(Guid recordId, string? commentText, string userName)
-        {
-            try
-            {
-                var record = await _recordRepository.FindByIdAsync(recordId);
-                if (record == null)
-                {
-                    return new Response
-                    {
-                        Success = false,
-                        Message = "Запис або коментар не знайдено"
-                    };
-                }
-
-                var newComment = new Record
-                {
-                    UserName = userName,
-                    Text = commentText,
-                    Comments = new List<Record>()
-                };
-
-                record.Comments.Add(newComment);
-        
-                await _recordRepository.UpdateOneAsync(record);
-
-                return new Response
-                {
-                    Success = true,
-                    Message = "Коментар успішно додано"
-                };
-            }
-            catch (Exception ex)
-            {
-                return new Response
-                {
-                    Success = false,
-                    Message = $"Помилка: {ex.Message}"
-                };
-            }
-        }
-
-
     }
-    
 
-    public class Response
+    public async Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid?  parentId)
     {
-        public bool Success { get; set; }
-        public string Message { get; set; }
+        try
+        {
+            var parentRecord = await _recordRepository.FindByIdAsync(parentRecordId);
+            if (parentRecord == null)
+            {
+                return new Response { Success = false, Message = "Батьківський запис не знайдено" };
+            }
+
+            var newComment = new Record
+            {
+                Id = Guid.NewGuid(),
+                UserName = userName,
+                Email = email,
+                Text = text,
+                ParentRecordId = parentRecordId,
+            };
+
+            await _recordRepository.InsertOneAsync(newComment);
+            return new Response { Success = true, Message = "Коментар успішно додано" };
+        }
+        catch (Exception ex)
+        {
+            return new Response { Success = false, Message = $"Помилка: {ex.Message}" };
+        }
     }
+
+  public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take)
+{
+    // Отримуємо кореневі записи
+    var pagedRootRecords = await _recordRepository.FilterBySkipAsync(r => r.ParentRecordId == null, skip, take);
+
+    var rootRecordIds = pagedRootRecords.Select(r => r.Id).ToList();
+
+    var allCommentsForRootRecords = await GetAllCommentsRecursively(rootRecordIds);
+
+    var commentsDict = allCommentsForRootRecords.GroupBy(c => c.ParentRecordId)
+        .ToDictionary(g => g.Key, g => g.ToList());
+
+    foreach (var record in pagedRootRecords)
+    {
+        record.Comments = BuildCommentsHierarchy(record.Id, commentsDict);
+    }
+
+    return pagedRootRecords.ToList();
+}
+
+private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)
+{
+    var allComments = new List<Record>();
+
+    while (parentIds.Any())
+    {
+        var comments = await _recordRepository.FilterByAsync(c => parentIds.Contains(c.ParentRecordId ?? Guid.Empty));
+
+        allComments.AddRange(comments);
+
+        parentIds = comments.Select(c => c.Id).ToList();
+    }
+
+    return allComments;
+}
+
+private List<Record> BuildCommentsHierarchy(Guid recordId, Dictionary<Guid?, List<Record>> commentsDict)
+{
+    var comments = new List<Record>();
+
+    if (commentsDict.TryGetValue(recordId, out var childComments))
+    {
+        foreach (var comment in childComments)
+        {
+            comment.Comments = BuildCommentsHierarchy(comment.Id, commentsDict);
+            comments.Add(comment);
+        }
+    }
+
+    return comments;
+}
+
+    public async Task<int> GetTotalRootRecordsCountAsync()
+    {
+        return await _recordRepository.CountAsync(r => r.ParentRecordId == null);
+    }
+
+   
+}
+
+public class Response
+{
+    public bool Success { get; set; }
+    public string Message { get; set; }
 }

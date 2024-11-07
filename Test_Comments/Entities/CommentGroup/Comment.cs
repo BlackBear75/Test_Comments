@@ -5,25 +5,17 @@ namespace Test_Comments.Entities.CommentGroup
 {
     public class Comment : Document
     {
-        [Required]
-        [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "User Name может содержать только буквы и цифры латинского алфавита")]
-        public string UserName { get; set; }
+            public string UserName { get; set; }
+            public string Email { get; set; }
 
-        [Required]
-        [EmailAddress(ErrorMessage = "Некорректный формат E-mail")]
-        public string Email { get; set; }
+            [Required]
+            [MaxLength(500)]
+            public string Text { get; set; }
 
-        [Url(ErrorMessage = "Некорректный формат URL для Home Page")]
-        public string? HomePage { get; set; } 
+            public Guid RecordId { get; set; } 
+            public Guid? ParentCommentId { get; set; } 
 
-        [Required]
-        [RegularExpression(@"^[a-zA-Z0-9]*$", ErrorMessage = "CAPTCHA может содержать только буквы и цифры латинского алфавита")]
-        public string Captcha { get; set; }
-
-        [Required]
-        [MaxLength(500, ErrorMessage = "Текст сообщения не должен превышать 500 символов")]
-        public string Text { get; set; } 
-
-        public DateTime PostedAt { get; set; } = DateTime.UtcNow; 
+            public List<Comment> Replies { get; set; } = new List<Comment>(); 
+        
     }
 }

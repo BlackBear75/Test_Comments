@@ -17,9 +17,11 @@
 
     <div class="comments">
       <ng-container *ngFor="let comment of record.comments">
-        <app-comment-item [comment]="comment" (addReply)="addComment(record.id, $event)"></app-comment-item>
+        <app-comment-item [comment]="comment" (addReply)="addNestedComment(record.id, $event)"></app-comment-item>
       </ng-container>
     </div>
+
+
   </div>
 
   <div *ngIf="records.length === 0" class="no-records">

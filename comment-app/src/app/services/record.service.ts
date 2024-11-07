@@ -39,8 +39,23 @@ export class RecordService {
   }
 
 
-  addComment(recordId: number, commentText: string): Observable<IComment> {
-    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, { text: commentText }, { withCredentials: true });
+  addComment(recordId: number, commentText: string, parentCommentId?: number): Observable<IComment> {
+    const payload: any = { text: commentText };
+
+    if (parentCommentId !== undefined) {  // Додайте перевірку
+      payload.parentCommentId = parentCommentId;
+    }
+
+    console.log('Payload:', payload); // Додайте цей вивід, щоб переконатися, що `parentCommentId` є в payload
+    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, payload, { withCredentials: true });
+  }
+
+
+
+
+
+  getCommentsHierarchy(recordId: number): Observable<IComment[]> {
+    return this.http.get<IComment[]>(`${this.apiUrl}/${recordId}/comments-hierarchy`, { withCredentials: true });
   }
 
 
