@@ -1,18 +1,27 @@
-<div class="comment-item">
-  <strong>{{ comment.userName }}</strong> <span>{{ comment.date | date: 'short' }}</span>
-  <p>{{ comment.text }}</p>
+<div class="comment-item border-left pl-3 my-2">
+  <div class="d-flex justify-content-between align-items-center">
+    <strong>{{ comment.userName }}</strong>
+    <small class="text-muted">{{ comment.date | date: 'short' }}</small>
+  </div>
+  <p class="mb-1">{{ comment.text }}</p>
 
-  <div *ngIf="!comment.showReplyField">
-    <button (click)="comment.showReplyField = true">Відповісти</button>
+  <div *ngIf="!comment.showReplyField" class="mb-2">
+    <button class="btn btn-link btn-sm text-primary p-0" (click)="comment.showReplyField = true">Відповісти</button>
   </div>
 
-  <div *ngIf="comment.showReplyField" class="reply-form">
-    <input type="text" [(ngModel)]="comment.replyText" placeholder="Ваш коментар" />
-    <button (click)="emitReply(comment.replyText || '')">Додати відповідь</button>
-    <button (click)="comment.showReplyField = false">Відмінити</button>
+  <div *ngIf="comment.showReplyField" class="reply-form form-inline">
+    <input
+      type="text"
+      class="form-control form-control-sm mr-2"
+      [(ngModel)]="comment.replyText"
+      placeholder="Ваш коментар"
+      style="flex-grow: 1;"
+    />
+    <button class="btn btn-success btn-sm mr-1" (click)="emitReply(comment.replyText || '')">Додати відповідь</button>
+    <button class="btn btn-secondary btn-sm" (click)="comment.showReplyField = false">Відмінити</button>
   </div>
 
-  <div class="replies" *ngIf="comment.comments?.length">
+  <div class="replies ml-3">
     <ng-container *ngFor="let reply of comment.comments">
       <app-comment-item [comment]="reply" (addReply)="addReply.emit($event)"></app-comment-item>
     </ng-container>

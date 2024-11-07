@@ -1,35 +1,42 @@
-<div class="comments-container">
-  <div *ngFor="let record of records" class="record">
-    <div class="record-header">
-      <strong>{{ record.userName }}</strong> <span>{{ record.date | date: 'short' }}</span>
+<div class="comments-container container">
+  <div *ngFor="let record of records" class="record card mb-3">
+    <div class="card-body">
+      <div class="record-header d-flex justify-content-between">
+        <h5 class="card-title mb-1">{{ record.userName }}</h5>
+        <small class="text-muted">{{ record.date | date: 'short' }}</small>
+      </div>
+      <p class="card-text">{{ record.text }}</p>
+
+      <div *ngIf="!record.showCommentField" class="mb-2">
+        <button class="btn btn-primary btn-sm" (click)="record.showCommentField = true">Додати коментар</button>
+      </div>
+
+      <div *ngIf="record.showCommentField" class="comment-form form-inline mb-3">
+        <input
+          type="text"
+          class="form-control mr-2"
+          [(ngModel)]="record.commentText"
+          placeholder="Ваш коментар"
+          style="flex-grow: 1;"
+        />
+        <button class="btn btn-success btn-sm mr-1" (click)="addComment(record.id, record.commentText)">Додати коментар</button>
+        <button class="btn btn-secondary btn-sm" (click)="cancelComment(record)">Відмінити</button>
+      </div>
+
+      <div class="comments">
+        <ng-container *ngFor="let comment of record.comments">
+          <app-comment-item [comment]="comment" (addReply)="addNestedComment(record.id, $event)"></app-comment-item>
+        </ng-container>
+      </div>
     </div>
-    <p>{{ record.text }}</p>
-
-    <div *ngIf="!record.showCommentField">
-      <button (click)="record.showCommentField = true">Додати коментар</button>
-    </div>
-
-    <div *ngIf="record.showCommentField" class="comment-form">
-      <input type="text" [(ngModel)]="record.commentText" placeholder="Ваш коментар" />
-      <button (click)="addComment(record.id, record.commentText)">Додати коментар</button>
-      <button (click)="cancelComment(record)">Відмінити</button>
-    </div>
-
-    <div class="comments">
-      <ng-container *ngFor="let comment of record.comments">
-        <app-comment-item [comment]="comment" (addReply)="addNestedComment(record.id, $event)"></app-comment-item>
-      </ng-container>
-    </div>
-
-
   </div>
 
-  <div *ngIf="records.length === 0" class="no-records">
+  <div *ngIf="records.length === 0" class="no-records text-center text-danger">
     <p>Записи не знайдено.</p>
   </div>
 
-  <div *ngIf="isPaginationVisible()" class="pagination">
-    <button (click)="prevPage()" [disabled]="currentPage === 1">Попередня</button>
-    <button (click)="nextPage()" [disabled]="currentPage === totalPages">Наступна</button>
+  <div *ngIf="isPaginationVisible()" class="pagination d-flex justify-content-center mt-4">
+    <button class="btn btn-primary mr-2" (click)="prevPage()" [disabled]="currentPage === 1">Попередня</button>
+    <button class="btn btn-primary" (click)="nextPage()" [disabled]="currentPage === totalPages">Наступна</button>
   </div>
 </div>
