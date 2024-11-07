@@ -1,0 +1,50 @@
+<div *ngIf="isVisible" class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Додати коментар</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form (ngSubmit)="onSubmit()">
+        <div class="modal-body">
+          <!-- Error Message Display -->
+          <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+          <div class="form-group">
+            <label for="commentText">Текст коментаря:</label>
+            <textarea [(ngModel)]="commentText" name="commentText" class="form-control" rows="5" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="file">Файл:</label>
+            <input type="file" (change)="onFileSelected($event)" class="form-control-file" />
+            <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 КБ)</small>
+          </div>
+
+          <!-- CAPTCHA Section -->
+          <div class="captcha-container form-group d-flex align-items-center">
+            <img [src]="captchaUrl" alt="CAPTCHA" class="captcha-image mr-3" style="max-width: 120px; height: auto;" />
+            <input
+              type="text"
+              [(ngModel)]="captcha"
+              name="captcha"
+              class="form-control mr-3"
+              placeholder="Введіть CAPTCHA"
+              required
+            />
+            <button type="button" (click)="refreshCaptcha()" class="btn btn-secondary btn-sm ml-2">Оновити CAPTCHA</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" [disabled]="!commentText || !captcha">Додати</button>
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Закрити</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isVisible" class="modal-backdrop fade show"></div>

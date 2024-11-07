@@ -7,7 +7,7 @@ using Test_Comments.Entities.RecordGroup.Repository;
 public interface IRecordService
 {
     Task<Response> AddRecordAsync(Record record);
-    Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email,  Guid?  parentId);
+    Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid? parentId, IFormFile file, string captcha, string storedCaptcha);
     Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take);
     Task<int> GetTotalRootRecordsCountAsync();
 }
@@ -34,11 +34,16 @@ public class RecordService : IRecordService
         }
     }
 
-
-    public async Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid?  parentId)
+    public async Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid? parentId, IFormFile file, string captcha, string storedCaptcha)
     {
         try
         {
+            // Перевірка CAPTCHA
+            if (string.IsNullOrWhiteSpace(storedCaptcha) || storedCaptcha != captcha)
+            {
+                return new Response { Success = false, Message = "Невірна CAPTCHA" };
+            }
+
             var parentRecord = await _recordRepository.FindByIdAsync(parentRecordId);
             if (parentRecord == null)
             {
@@ -51,8 +56,26 @@ public class RecordService : IRecordService
                 UserName = userName,
                 Email = email,
                 Text = text,
-                ParentRecordId = parentRecordId,
+                ParentRecordId = parentId ?? parentRecordId // зберігаємо ParentId, якщо це вкладений коментар
             };
+
+            // Додавання файлу, якщо він є
+            if (file != null)
+            {
+                if (file.Length > 100 * 1024) // Максимальний розмір файлу 100 КБ
+                {
+                    return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
+                }
+
+                newComment.FileName = file.FileName;
+                newComment.FileType = file.ContentType;
+
+                using (var ms = new MemoryStream())
+                {
+                    await file.CopyToAsync(ms);
+                    newComment.FileData = ms.ToArray();
+                }
+            }
 
             await _recordRepository.InsertOneAsync(newComment);
             return new Response { Success = true, Message = "Коментар успішно додано" };
@@ -79,46 +102,42 @@ public class RecordService : IRecordService
         return pagedRootRecords.ToList();
     }
 
-
-private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)
-{
-    var allComments = new List<Record>();
-
-    while (parentIds.Any())
+    private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)
     {
-        var comments = await _recordRepository.FilterByAsync(c => parentIds.Contains(c.ParentRecordId ?? Guid.Empty));
+        var allComments = new List<Record>();
 
-        allComments.AddRange(comments);
-
-        parentIds = comments.Select(c => c.Id).ToList();
-    }
-
-    return allComments;
-}
-
-private List<Record> BuildCommentsHierarchy(Guid recordId, Dictionary<Guid?, List<Record>> commentsDict)
-{
-    var comments = new List<Record>();
-
-    if (commentsDict.TryGetValue(recordId, out var childComments))
-    {
-        foreach (var comment in childComments)
+        while (parentIds.Any())
         {
-            comment.Comments = BuildCommentsHierarchy(comment.Id, commentsDict);
-            comments.Add(comment);
+            var comments = await _recordRepository.FilterByAsync(c => parentIds.Contains(c.ParentRecordId ?? Guid.Empty));
+
+            allComments.AddRange(comments);
+
+            parentIds = comments.Select(c => c.Id).ToList();
         }
+
+        return allComments;
     }
 
-    return comments;
-}
+    private List<Record> BuildCommentsHierarchy(Guid recordId, Dictionary<Guid?, List<Record>> commentsDict)
+    {
+        var comments = new List<Record>();
 
+        if (commentsDict.TryGetValue(recordId, out var childComments))
+        {
+            foreach (var comment in childComments)
+            {
+                comment.Comments = BuildCommentsHierarchy(comment.Id, commentsDict);
+                comments.Add(comment);
+            }
+        }
+
+        return comments;
+    }
 
     public async Task<int> GetTotalRootRecordsCountAsync()
     {
         return await _recordRepository.CountAsync(r => r.ParentRecordId == null);
     }
-
-   
 }
 
 public class Response
@@ -126,3 +145,4 @@ public class Response
     public bool Success { get; set; }
     public string Message { get; set; }
 }
+

@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { RecordService } from '../services/record.service';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RecordService } from '../services/record.service';
 import { FormsModule } from '@angular/forms';
 import { CommentItemComponent } from '../comment-item/comment-item.component';
+import { AddCommentModalComponent } from '../add-comment-modal/add-comment-modal.component';
 
 export interface IRecord {
   id: number;
@@ -19,7 +20,6 @@ export interface IRecord {
   fileType?: string;
   fileData?: string | null;
 }
-declare const lightbox: any;
 
 export interface IComment {
   id: number;
@@ -33,13 +33,16 @@ export interface IComment {
 
 @Component({
   selector: 'app-comments',
-  standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule, CommentItemComponent],
   templateUrl: './comments.component.html',
+  standalone: true,
+  imports: [RouterModule, CommonModule, FormsModule, CommentItemComponent, AddCommentModalComponent],
   styleUrls: ['./comments.component.css']
 })
 export class CommentsComponent implements OnInit {
   records: IRecord[] = [];
+  isCommentModalVisible = false;
+  selectedRecordId?: number;
+  selectedCommentId?: number;
   currentPage: number = 1;
   recordsPerPage: number = 25;
   totalRecords: number = 0;
@@ -49,16 +52,7 @@ export class CommentsComponent implements OnInit {
   ngOnInit(): void {
     this.loadRecords();
     this.loadTotalRecordsCount();
-
-    // Ініціалізація параметрів Lightbox
-    if (typeof lightbox !== 'undefined') {
-      lightbox.option({
-        'resizeDuration': 200,
-        'wrapAround': true
-      });
-    }
   }
-
 
   loadRecords() {
     this.recordService.getRecords(this.currentPage, this.recordsPerPage).subscribe({
@@ -100,63 +94,49 @@ export class CommentsComponent implements OnInit {
     return atob(fileData);
   }
 
-
-  addComment(recordId: number, commentText: string | undefined) {
-    if (!commentText) return;
-
-    this.recordService.addComment(recordId, commentText).subscribe({
-      next: (savedComment) => {
-        const record = this.records.find(r => r.id === recordId);
-        if (record) {
-          record.comments.push({
-            ...savedComment,
-            showReplyField: false,
-            replyText: ''
-          });
-          record.commentText = '';
-          record.showCommentField = false;
-        }
-      },
-      error: (error) => {
-        console.error('Помилка при додаванні коментаря:', error);
-      }
-    });
+  openCommentModal(recordId: number, commentId?: number) {
+    console.log(`Opening modal for recordId: ${recordId}, parentCommentId: ${commentId}`);
+    this.selectedRecordId = recordId;
+    this.selectedCommentId = commentId;
+    this.isCommentModalVisible = true;
   }
 
-  addNestedComment(recordId: number, { text, parentCommentId }: { text: string, parentCommentId: number }) {
-    this.recordService.addComment(parentCommentId, text, recordId).subscribe({
-      next: (savedComment) => {
-        const record = this.records.find(r => r.id === recordId);
-        if (record) {
-          const parentComment = this.findCommentById(record.comments, parentCommentId);
-          if (parentComment) {
-            parentComment.comments = parentComment.comments || [];
-            parentComment.comments.push({
-              ...savedComment,
-              showReplyField: false,
-              replyText: ''
-            });
-          }
+
+
+
+  closeCommentModal() {
+    this.isCommentModalVisible = false;
+    this.selectedRecordId = undefined;
+    this.selectedCommentId = undefined;
+  }
+
+  handleCommentAdded(commentData: { text: string; captcha: string; file: File | null }) {
+    if (this.selectedRecordId) {
+      const formData = new FormData();
+      formData.append('text', commentData.text);
+      formData.append('captcha', commentData.captcha);
+      formData.append('file', commentData.file || new Blob());
+
+
+      this.recordService.addComment(this.selectedCommentId, formData).subscribe({
+        next: (savedComment) => {
+          console.log('Коментар успішно додано:', savedComment);
+          this.closeCommentModal();
+        },
+        error: (error) => {
+          console.error('Помилка при додаванні коментаря:', error);
         }
-      },
-      error: (error) => {
-        console.error('Помилка при додаванні відповіді на коментар:', error);
-      }
-    });
+      });
+    }
   }
 
   findCommentById(comments: IComment[], commentId: number): IComment | undefined {
-    for (let comment of comments) {
+    for (const comment of comments) {
       if (comment.id === commentId) return comment;
       const found = this.findCommentById(comment.comments || [], commentId);
       if (found) return found;
     }
     return undefined;
-  }
-
-  cancelComment(record: IRecord) {
-    record.showCommentField = false;
-    record.commentText = '';
   }
 
   nextPage() {

@@ -36,13 +36,11 @@ export class RecordService {
     });
   }
 
-  addComment(recordId: number, commentText: string, parentCommentId?: number): Observable<IComment> {
-    const payload: any = { text: commentText };
-    if (parentCommentId !== undefined) {
-      payload.parentCommentId = parentCommentId;
-    }
-    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, payload, { withCredentials: true });
+  addComment(recordId: number | undefined, formData: FormData): Observable<IComment> {
+    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, formData, { withCredentials: true });
   }
+
+
 
   getCommentsHierarchy(recordId: number): Observable<IComment[]> {
     return this.http.get<IComment[]>(`${this.apiUrl}/${recordId}/comments-hierarchy`, { withCredentials: true });

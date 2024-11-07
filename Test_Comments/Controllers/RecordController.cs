@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Threading.Tasks;
 using Test_Comments.Models.RecordModels;
 using Test_Comments.Services;
@@ -51,7 +53,7 @@ public class RecordController : ControllerBase
 
         if (file != null)
         {
-            if (file.Length > 100 * 1024) 
+            if (file.Length > 100 * 1024)
             {
                 return BadRequest(new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" });
             }
@@ -70,30 +72,42 @@ public class RecordController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
-
+    [Authorize]
     [HttpPost("{recordId}/add-comment")]
-    public async Task<IActionResult> AddComment(Guid recordId, [FromBody] CommentRequest request)
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> AddComment(Guid recordId, [FromForm] CommentRequest request, [FromForm] IFormFile? file)
     {
-        var userId = User.FindFirst("userId")?.Value; 
+        var storedCaptcha = HttpContext.Session.GetString("CaptchaCode");
+        if (string.IsNullOrWhiteSpace(storedCaptcha) || storedCaptcha != request.Captcha)
+        {
+            return BadRequest(new Response { Success = false, Message = "Невірна CAPTCHA" });
+        }
+
+        var userId = User.FindFirst("userId")?.Value;
         if (userId == null)
         {
-            return Unauthorized("Невідомий користувач");
+            return Unauthorized(new Response { Success = false, Message = "Невідомий користувач" });
         }
+
         var user = await _userService.GetUserAsync(Guid.Parse(userId));
         if (user == null)
         {
-            return NotFound("Користувача не знайдено");
+            return NotFound(new Response { Success = false, Message = "Користувача не знайдено" });
         }
 
-        var result = await _recordService.AddCommentAsync(recordId, request.Text, user.Name, user.Email, request.ParentRecordId);
-        if (result.Success)
-        {
-            return Ok(result); 
-        }
+        var result = await _recordService.AddCommentAsync(
+            recordId,
+            request.Text,
+            user.Name,
+            user.Email,
+            recordId,
+            file,
+            request.Captcha,
+            storedCaptcha
+        );
 
-        return BadRequest(result.Message);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
-
 
     [HttpGet("paged")]
     public async Task<IActionResult> GetPagedRootRecordsWithComments(int page = 1, int pageSize = 25)
@@ -109,13 +123,14 @@ public class RecordController : ControllerBase
         var totalCount = await _recordService.GetTotalRootRecordsCountAsync();
         return Ok(totalCount);
     }
+
     public class CommentRequest
-{
-    [Required]
-    public string Text { get; set; }
+    {
+        [Required]
+        public string Text { get; set; }
 
-    public Guid? ParentRecordId { get; set; }
+        [Required]
+        public string Captcha { get; set; }
 
-}
-
+    }
 }

@@ -1,0 +1,33 @@
+/* add-comment-modal.component.css */
+
+.modal-dialog {
+  max-width: 800px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.captcha-image {
+  max-width: 150px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* Додаємо відступ зліва для кнопки "Оновити CAPTCHA" */
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+/* Сірий колір для кнопки, коли вона заблокована */
+.btn-primary:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+}

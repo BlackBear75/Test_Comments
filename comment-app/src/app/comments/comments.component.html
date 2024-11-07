@@ -9,39 +9,23 @@
 
       <div *ngIf="record.fileType">
         <div *ngIf="record.fileType.startsWith('image/')">
-          <!-- Зображення з Lightbox -->
-          <div *ngIf="record.fileType && record.fileType.startsWith('image/')">
-            <a [href]="record.fileData" data-lightbox="record-image" data-title="{{ record.fileName }}">
-              <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
-            </a>
-          </div>
-
+          <a [href]="record.fileData" data-lightbox="record-image" data-title="{{ record.fileName }}">
+            <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
+          </a>
         </div>
         <div *ngIf="record.fileType === 'text/plain'" class="mt-2">
           <pre class="text-muted">{{ record.fileData }}</pre>
         </div>
       </div>
 
-      <!-- Додати коментарі -->
-      <div *ngIf="!record.showCommentField" class="mb-2">
-        <button class="btn btn-primary btn-sm" (click)="record.showCommentField = true">Додати коментар</button>
-      </div>
-
-      <div *ngIf="record.showCommentField" class="comment-form form-inline mb-3">
-        <input
-          type="text"
-          class="form-control mr-2"
-          [(ngModel)]="record.commentText"
-          placeholder="Ваш коментар"
-          style="flex-grow: 1;"
-        />
-        <button class="btn btn-success btn-sm mr-1" (click)="addComment(record.id, record.commentText)">Додати коментар</button>
-        <button class="btn btn-secondary btn-sm" (click)="cancelComment(record)">Відмінити</button>
-      </div>
+      <button class="btn btn-primary btn-sm" (click)="openCommentModal(record.id)">Додати коментар</button>
 
       <div class="comments">
         <ng-container *ngFor="let comment of record.comments">
-          <app-comment-item [comment]="comment" (addReply)="addNestedComment(record.id, $event)"></app-comment-item>
+          <app-comment-item
+            [comment]="comment"
+            (addReply)="openCommentModal(record.id, $event.parentCommentId)">
+          </app-comment-item>
         </ng-container>
       </div>
     </div>
@@ -55,5 +39,12 @@
     <button class="btn btn-primary mr-2" (click)="prevPage()" [disabled]="currentPage === 1">Попередня</button>
     <button class="btn btn-primary" (click)="nextPage()" [disabled]="currentPage === totalPages">Наступна</button>
   </div>
+
+  <app-add-comment-modal
+    [isVisible]="isCommentModalVisible"
+    [parentRecordId]="selectedRecordId"
+    [parentCommentId]="selectedCommentId"
+    (onClose)="closeCommentModal()"
+    (onCommentAdded)="handleCommentAdded($event)">
+  </app-add-comment-modal>
 </div>
-<script src="node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js"></script>
