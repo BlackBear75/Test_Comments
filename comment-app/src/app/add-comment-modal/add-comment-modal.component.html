@@ -9,8 +9,8 @@
       </div>
       <form (ngSubmit)="onSubmit()">
         <div class="modal-body">
-          <!-- Error Message Display -->
           <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+          <div *ngIf="externalErrorMessage" class="alert alert-danger">{{ externalErrorMessage }}</div>
 
           <div class="form-group">
             <label for="commentText">Текст коментаря:</label>
@@ -23,7 +23,6 @@
             <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 КБ)</small>
           </div>
 
-          <!-- CAPTCHA Section -->
           <div class="captcha-container form-group d-flex align-items-center">
             <img [src]="captchaUrl" alt="CAPTCHA" class="captcha-image mr-3" style="max-width: 120px; height: auto;" />
             <input
@@ -39,7 +38,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary" [disabled]="!commentText || !captcha">Додати</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!commentText || !captcha || !isFileValid">Додати</button> 
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Закрити</button>
         </div>
       </form>

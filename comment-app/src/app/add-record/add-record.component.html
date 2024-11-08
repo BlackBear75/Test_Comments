@@ -5,6 +5,7 @@
     <div class="form-group">
       <label for="text">Текст запису:</label>
       <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div> <!-- Повідомлення про успіх -->
       <textarea
         id="text"
         [(ngModel)]="record.text"
@@ -24,10 +25,6 @@
 
     <div *ngIf="filePreviewUrl && isImage" class="preview-container mt-3">
       <img [src]="filePreviewUrl" alt="Preview" class="img-thumbnail" />
-    </div>
-
-    <div *ngIf="filePreviewText && !isImage" class="preview-container mt-3">
-      <textarea class="form-control" rows="5" readonly>{{ filePreviewText }}</textarea>
     </div>
 
     <div class="captcha-container form-group d-flex align-items-center">

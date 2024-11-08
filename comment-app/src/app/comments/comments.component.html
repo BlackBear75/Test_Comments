@@ -47,7 +47,9 @@
     [isVisible]="isCommentModalVisible"
     [parentRecordId]="selectedRecordId"
     [parentCommentId]="selectedCommentId"
-    (onClose)="closeCommentModal()"
-    (onCommentAdded)="handleCommentAdded($event)">
+    [externalErrorMessage]="externalErrorMessage"
+  (onClose)="closeCommentModal()"
+  (onCommentAdded)="handleCommentAdded($event)">
   </app-add-comment-modal>
+
 </div>

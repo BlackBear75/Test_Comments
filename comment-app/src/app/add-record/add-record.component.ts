@@ -27,7 +27,6 @@ export class AddRecordComponent {
 
   file: File | null = null;
   filePreviewUrl: string | ArrayBuffer | null = null;
-  filePreviewText: string | null = null;
   isImage: boolean = false;
 
   constructor(private recordService: RecordService, private cdr: ChangeDetectorRef) {
@@ -50,7 +49,6 @@ export class AddRecordComponent {
         this.errorMessage = 'Файл не повинен перевищувати 100 КБ';
         this.file = null;
         this.filePreviewUrl = null;
-        this.filePreviewText = null;
         return;
       }
 
@@ -80,7 +78,7 @@ export class AddRecordComponent {
               this.cdr.detectChanges();
             };
           } else {
-            this.filePreviewText = reader.result as string;
+            // Очищаємо filePreviewUrl для текстових файлів, щоб не показувати текстове поле
             this.filePreviewUrl = null;
           }
         };
@@ -89,11 +87,9 @@ export class AddRecordComponent {
         this.errorMessage = 'Допустимі формати файлів: JPG, GIF, PNG, TXT';
         this.file = null;
         this.filePreviewUrl = null;
-        this.filePreviewText = null;
       }
     }
   }
-
 
   onSubmit() {
     if (!this.file) {
@@ -112,12 +108,11 @@ export class AddRecordComponent {
     this.recordService.addRecord(formData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.successMessage = response.message;
+          this.successMessage = 'Запис успішно додано!'; // Встановлюємо повідомлення про успіх
           this.record.text = '';
           this.captcha = '';
           this.file = null;
           this.filePreviewUrl = null;
-          this.filePreviewText = null;
           this.refreshCaptcha();
           this.isModalVisible = true;
         } else {

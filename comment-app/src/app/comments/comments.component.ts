@@ -45,6 +45,7 @@ export class CommentsComponent implements OnInit {
   records: IRecord[] = [];
   isCommentModalVisible = false;
   selectedRecordId?: number;
+  externalErrorMessage: string | null = null;
   selectedCommentId?: number;
   currentPage: number = 1;
   recordsPerPage: number = 25;
@@ -117,16 +118,11 @@ export class CommentsComponent implements OnInit {
 
 
   openCommentModal(recordId: number, commentId?: number) {
-    console.log(`Opening modal for recordId: ${recordId}, parentCommentId: ${commentId}`);
     this.selectedRecordId = recordId;
     this.selectedCommentId = commentId;
     this.isCommentModalVisible = true;
-  }
+    this.externalErrorMessage = null;
 
-  closeCommentModal() {
-    this.isCommentModalVisible = false;
-    this.selectedRecordId = undefined;
-    this.selectedCommentId = undefined;
   }
 
   handleCommentAdded(commentData: { text: string; captcha: string; file: File | null }) {
@@ -141,13 +137,25 @@ export class CommentsComponent implements OnInit {
       this.recordService.addComment(recordIdToUse, formData).subscribe({
         next: (savedComment) => {
           console.log('Коментар успішно додано:', savedComment);
-          this.closeCommentModal();
+          this.isCommentModalVisible = false;
+          this.externalErrorMessage = null;
+          (document.querySelector('app-add-comment-modal') as any)?.clearForm();
         },
         error: (error) => {
           console.error('Помилка при додаванні коментаря:', error);
+          this.externalErrorMessage = error.error?.message || 'Сталася помилка при додаванні коментаря.';
+          this.isCommentModalVisible = true;
         }
       });
     }
+  }
+
+
+  closeCommentModal() {
+    this.isCommentModalVisible = false;
+    this.selectedRecordId = undefined;
+    this.selectedCommentId = undefined;
+    this.externalErrorMessage = null; // Очищаємо помилку при закритті модального вікна
   }
 
   findCommentById(comments: IComment[], commentId: number): IComment | undefined {

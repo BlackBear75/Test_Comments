@@ -12,8 +12,9 @@ import { CommonModule } from '@angular/common';
 })
 export class AddCommentModalComponent {
   @Input() isVisible: boolean = false;
-  @Input() parentRecordId?: number;  // Ідентифікатор основного запису
+  @Input() parentRecordId?: number; // Ідентифікатор основного запису
   @Input() parentCommentId?: number; // Ідентифікатор коментаря, на який відповідають (опціонально)
+  @Input() externalErrorMessage: string | null = null; // Зовнішнє повідомлення про помилку
   @Output() onClose = new EventEmitter<void>();
   @Output() onCommentAdded = new EventEmitter<{ text: string, captcha: string, file: File | null }>();
 
@@ -22,6 +23,7 @@ export class AddCommentModalComponent {
   captchaUrl: string = '';
   file: File | null = null;
   errorMessage: string | null = null;
+  isFileValid: boolean = true; // Додаємо змінну для валідації файлу
 
   constructor(private recordService: RecordService) {
     this.refreshCaptcha();
@@ -31,7 +33,6 @@ export class AddCommentModalComponent {
     this.recordService.getCaptchaImage().subscribe({
       next: (blob) => {
         this.captchaUrl = URL.createObjectURL(blob);
-        this.errorMessage = null;
       },
       error: () => {
         this.errorMessage = 'Не вдалося завантажити CAPTCHA. Спробуйте ще раз.';
@@ -47,9 +48,11 @@ export class AddCommentModalComponent {
 
       if (selectedFile.size > fileSizeLimit) {
         this.errorMessage = 'Файл не повинен перевищувати 100 КБ';
+        this.isFileValid = false;
         this.file = null;
       } else {
         this.file = selectedFile;
+        this.isFileValid = true;
         this.errorMessage = null;
       }
     }
@@ -60,41 +63,28 @@ export class AddCommentModalComponent {
       this.errorMessage = 'Заповніть всі обов’язкові поля.';
       return;
     }
-
-    // Формуємо дані для надсилання
-    const formData = new FormData();
-    formData.append('text', this.commentText);
-    formData.append('captcha', this.captcha);
-    if (this.file) {
-      formData.append('file', this.file);
-    }
-    if (this.parentRecordId !== undefined) {
-      formData.append('parentRecordId', this.parentRecordId.toString());
-    }
-    if (this.parentCommentId !== undefined) {
-      formData.append('parentCommentId', this.parentCommentId.toString());
-    }
-
-    // Виконуємо відправку коментаря
+    this.refreshCaptcha()
+    this.errorMessage = null;
     this.onCommentAdded.emit({
       text: this.commentText,
       captcha: this.captcha,
       file: this.file
     });
-
-    this.clearForm();
-    this.closeModal();
   }
+
+  closeModal() {
+    this.clearForm();
+    this.refreshCaptcha()
+    this.onClose.emit();
+    this.isVisible = false;
+  }
+
 
   clearForm() {
     this.commentText = '';
     this.captcha = '';
     this.file = null;
     this.errorMessage = null;
-  }
-
-  closeModal() {
-    this.onClose.emit();
-    this.isVisible = false;
+    this.isFileValid = true;
   }
 }
