@@ -13,6 +13,12 @@ public interface IBaseRepository<TDocument> where TDocument : Document
     Task<IEnumerable<TDocument>> GetWithSkipAsync(int skip, int take); 
     Task<IEnumerable<TDocument>> FilterByAsync(Expression<Func<TDocument, bool>> filterExpression);
 
+    Task<IEnumerable<TDocument>> SortFilterBySkipAsync(
+        Expression<Func<TDocument, bool>> filterExpression,
+        Expression<Func<TDocument, object>> sortField,
+        bool ascending,
+        int skip,
+        int take);
     Task<IEnumerable<TDocument>> FilterBySkipAsync(Expression<Func<TDocument, bool>> filterExpression, int skip,
         int take);
     Task<int> CountAsync(Expression<Func<TDocument, bool>> filterExpression);

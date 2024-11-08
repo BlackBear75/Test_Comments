@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { AuthService } from './auth.service';
@@ -18,11 +18,14 @@ export class RecordService {
     return this.http.post(`${this.apiUrl}/add`, formData, { headers, withCredentials: true });
   }
 
-  getRecords(page: number, pageSize: number): Observable<IRecord[]> {
-    return this.http.get<IRecord[]>(`${this.apiUrl}/paged`, {
-      params: { page: page.toString(), pageSize: pageSize.toString() },
-      withCredentials: true
-    });
+  getRecords(page: number, pageSize: number, sortField: string, sortDirection: 'asc' | 'desc'): Observable<IRecord[]> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString())
+      .set('sortField', sortField)
+      .set('sortDirection', sortDirection);
+
+    return this.http.get<IRecord[]>(`${this.apiUrl}/paged`, { params });
   }
 
   getRecordsCount(): Observable<number> {

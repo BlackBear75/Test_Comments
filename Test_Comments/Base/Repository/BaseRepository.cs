@@ -36,7 +36,23 @@ public class BaseRepository<TDocument> : IBaseRepository<TDocument> where TDocum
         _dbSet.Update(document);
         await _context.SaveChangesAsync();
     }
+    public async Task<IEnumerable<TDocument>> SortFilterBySkipAsync(
+        Expression<Func<TDocument, bool>> filterExpression,
+        Expression<Func<TDocument, object>> sortField,
+        bool ascending,
+        int skip,
+        int take)
+    {
+        IQueryable<TDocument> query = _dbSet
+            .Where(filterExpression)
+            .Where(d => !d.Deleted);
 
+        query = ascending ? query.OrderBy(sortField) : query.OrderByDescending(sortField);
+
+        query = query.Skip(skip).Take(take);
+
+        return await query.ToListAsync();
+    }
     public async Task DeleteOneAsync(Guid id)
     {
         var document = await FindByIdAsync(id);

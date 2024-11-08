@@ -1,9 +1,28 @@
 <div class="comments-container container">
+  <table class="table table-hover">
+    <thead>
+    <tr>
+      <th (click)="sortRecords('userName')" style="cursor: pointer;">
+        User Name
+        <span *ngIf="sortField === 'userName'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th (click)="sortRecords('email')" style="cursor: pointer;">
+        E-mail
+        <span *ngIf="sortField === 'email'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th (click)="sortRecords('creationDate')" style="cursor: pointer;">
+        Date
+        <span *ngIf="sortField === 'creationDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+    </tr>
+    </thead>
+  </table>
+
   <div *ngFor="let record of records" class="record card mb-3">
     <div class="card-body">
       <div class="record-header d-flex justify-content-between">
         <h5 class="card-title mb-1">{{ record.userName }}</h5>
-        <small class="text-muted">{{ record.date | date: 'short' }}</small>
+        <small class="text-muted">Дата створення: {{ record.creationDate | date: 'short' }}</small>
       </div>
       <p class="card-text">{{ record.text }}</p>
 
@@ -13,22 +32,23 @@
             <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
           </a>
         </div>
-
         <div *ngIf="record.fileType === 'text/plain'" class="mt-2">
-          <a [href]="record.fileData" target="_blank" class="text-primary">
-            Переглянути файл: {{ record.fileName }}
-          </a>
+          <a [href]="record.fileData" target="_blank" class="text-primary">Переглянути файл: {{ record.fileName }}</a>
         </div>
       </div>
 
       <button class="btn btn-primary btn-sm" (click)="openCommentModal(record.id)">Додати коментар</button>
 
-      <div class="comments">
+      <div class="comments mt-2">
         <ng-container *ngFor="let comment of record.comments">
-          <app-comment-item
-            [comment]="comment"
-            (addReply)="openCommentModal(record.id, $event.parentCommentId)">
-          </app-comment-item>
+          <div class="comment-item">
+            <strong>{{ comment.userName }}</strong>
+            <small class="text-muted d-block">Дата коментаря: {{ comment.creationDate | date: 'short' }}</small>
+            <app-comment-item
+              [comment]="comment"
+              (addReply)="openCommentModal(record.id, $event.parentCommentId)">
+            </app-comment-item>
+          </div>
         </ng-container>
       </div>
     </div>
@@ -48,8 +68,7 @@
     [parentRecordId]="selectedRecordId"
     [parentCommentId]="selectedCommentId"
     [externalErrorMessage]="externalErrorMessage"
-  (onClose)="closeCommentModal()"
-  (onCommentAdded)="handleCommentAdded($event)">
+    (onClose)="closeCommentModal()"
+    (onCommentAdded)="handleCommentAdded($event)">
   </app-add-comment-modal>
-
 </div>

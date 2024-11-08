@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Test_Comments.Entities.RecordGroup.Repository;
@@ -9,7 +10,8 @@ public interface IRecordService
 {
     Task<Response> AddRecordAsync(Record record);
     Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid? parentId, IFormFile file, string captcha, string storedCaptcha);
-    Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take);
+    Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take, string sortField, string sortDirection);
+    
     Task<int> GetTotalRootRecordsCountAsync();
 }
 
@@ -86,9 +88,25 @@ public class RecordService : IRecordService
     }
 
 
-    public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take)
+    public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take, string sortField, string sortDirection)
     {
-        var pagedRootRecords = await _recordRepository.FilterBySkipAsync(r => r.ParentRecordId == null, skip, take);
+        Expression<Func<Record, object>> sortExpression = sortField.ToLower() switch
+        {
+            "username" => r => r.UserName,
+            "email" => r => r.Email,
+            "date" => r => r.CreationDate,
+            _ => r => r.CreationDate 
+        };
+
+        bool ascending = sortDirection.ToLower() == "asc";
+
+        var pagedRootRecords = await _recordRepository.SortFilterBySkipAsync(
+            r => r.ParentRecordId == null,
+            sortExpression,
+            ascending,
+            skip,
+            take
+        );
         var rootRecordIds = pagedRootRecords.Select(r => r.Id).ToList();
         var allCommentsForRootRecords = await GetAllCommentsRecursively(rootRecordIds);
         var commentsDict = allCommentsForRootRecords
@@ -98,39 +116,11 @@ public class RecordService : IRecordService
         foreach (var record in pagedRootRecords)
         {
             record.Comments = BuildCommentsHierarchy(record.Id, commentsDict);
-
-            // Перевіряємо, чи є файл текстовим, і декодуємо його вміст для виведення
-            if (record.FileData != null && record.FileType == "text/plain")
-            {
-                var decodedContent = Encoding.UTF8.GetString(record.FileData); // Перетворюємо в UTF-8
-                Console.WriteLine($"Вміст текстового файлу для запису {record.Id}: {decodedContent}");
-            }
-
-            // Виводимо вміст текстових файлів у коментарях, якщо такі є
-            foreach (var comment in record.Comments)
-            {
-                PrintDecodedFileContent(comment);
-            }
         }
 
         return pagedRootRecords.ToList();
     }
 
-// Рекурсивний метод для виведення вмісту файлів у коментарях
-    private void PrintDecodedFileContent(Record comment)
-    {
-        if (comment.FileData != null && comment.FileType == "text/plain")
-        {
-            var decodedContent = Encoding.UTF8.GetString(comment.FileData);
-            Console.WriteLine($"Вміст текстового файлу для коментаря {comment.Id}: {decodedContent}");
-        }
-
-        // Рекурсія для вкладених коментарів
-        foreach (var nestedComment in comment.Comments)
-        {
-            PrintDecodedFileContent(nestedComment);
-        }
-    }
 
 
     private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)

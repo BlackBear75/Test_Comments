@@ -110,12 +110,17 @@ public class RecordController : ControllerBase
     }
 
     [HttpGet("paged")]
-    public async Task<IActionResult> GetPagedRootRecordsWithComments(int page = 1, int pageSize = 25)
+    public async Task<IActionResult> GetPagedRootRecordsWithComments(
+        int page = 1,
+        int pageSize = 25,
+        string sortField = "date",
+        string sortDirection = "asc")
     {
         int skip = (page - 1) * pageSize;
-        var records = await _recordService.GetPagedRootRecordsWithCommentsAsync(skip, pageSize);
+        var records = await _recordService.GetPagedRootRecordsWithCommentsAsync(skip, pageSize, sortField, sortDirection);
         return Ok(records);
     }
+
 
     [HttpGet("count")]
     public async Task<IActionResult> GetTotalRootRecordsCount()
