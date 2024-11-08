@@ -37,13 +37,13 @@
         </div>
       </div>
 
-      <button class="btn btn-primary btn-sm" (click)="openCommentModal(record.id)">Додати коментар</button>
+      <button
+        class="btn btn-primary btn-sm"
+        (click)="openCommentModal(record.id)">Додати коментар</button>
 
       <div class="comments mt-2">
         <ng-container *ngFor="let comment of record.comments">
           <div class="comment-item">
-            <strong>{{ comment.userName }}</strong>
-            <small class="text-muted d-block">Дата коментаря: {{ comment.creationDate | date: 'short' }}</small>
             <app-comment-item
               [comment]="comment"
               (addReply)="openCommentModal(record.id, $event.parentCommentId)">

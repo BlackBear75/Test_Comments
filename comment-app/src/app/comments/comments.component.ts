@@ -4,7 +4,8 @@ import { AddCommentModalComponent } from '../add-comment-modal/add-comment-modal
 import { CommentItemComponent } from '../comment-item/comment-item.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
+import { AuthService } from '../services/auth.service'; // Додано імпорт AuthService
 
 export interface IRecord {
   id: number;
@@ -55,14 +56,17 @@ export class CommentsComponent implements OnInit {
   sortField: string = 'date';
   sortDirection: 'asc' | 'desc' = 'asc';
 
-  constructor(private recordService: RecordService) {}
+  constructor(
+    private recordService: RecordService,
+    private authService: AuthService,
+    private router: Router // Додано Router
+  ) {}
 
   ngOnInit(): void {
     this.loadRecords();
     this.loadTotalRecordsCount();
   }
 
-  // Метод для завантаження записів з урахуванням пагінації та сортування
   loadRecords() {
     this.recordService.getRecords(this.currentPage, this.recordsPerPage, this.sortField, this.sortDirection).subscribe({
       next: (data) => {
@@ -81,9 +85,9 @@ export class CommentsComponent implements OnInit {
       }
     });
   }
-
-
-  // Метод для обробки коментарів
+  isUserLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
   processComments(comments: IComment[]): IComment[] {
     return comments.map(comment => {
       return {
@@ -148,22 +152,24 @@ export class CommentsComponent implements OnInit {
     }
   }
 
-  // Метод для підрахунку загальної кількості сторінок
   get totalPages(): number {
     return Math.ceil(this.totalRecords / this.recordsPerPage);
   }
 
-  // Перевірка наявності пагінації
   isPaginationVisible(): boolean {
     return this.totalRecords > this.recordsPerPage;
   }
 
   // Метод для відкриття модального вікна коментаря
   openCommentModal(recordId: number, commentId?: number) {
-    this.selectedRecordId = recordId;
-    this.selectedCommentId = commentId;
-    this.isCommentModalVisible = true;
-    this.externalErrorMessage = null;
+    if (this.isUserLoggedIn()) {
+      this.selectedRecordId = recordId;
+      this.selectedCommentId = commentId;
+      this.isCommentModalVisible = true;
+      this.externalErrorMessage = null;
+    } else {
+      this.router.navigate(['/login']); // Перенаправлення на сторінку входу, якщо не авторизований
+    }
   }
 
   // Метод для обробки доданого коментаря
