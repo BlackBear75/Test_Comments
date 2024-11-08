@@ -30,10 +30,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Models\CommentModels\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
       <_ContentIncludedByDefault Remove="Views\Shared\Error.cshtml" />
       <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />

@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Test_Comments.Base;
 using Test_Comments.Base.Repository;
-using Test_Comments.Entities.CommentGroup.Repository;
 using Test_Comments.Entities.UserGroup.Repository;
 using Microsoft.OpenApi.Models;
 using Test_Comments.Entities.RecordGroup.Repository;
@@ -35,7 +34,6 @@ public static class DependencyStartup
     {
         services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
         services.AddScoped(typeof(IUserRepository<>), typeof(UserRepository<>));
-        services.AddScoped(typeof(ICommentRepository<>), typeof(CommentRepository<>));
         services.AddScoped(typeof(IRecordRepository<>), typeof(RecordRepository<>));
         
     }

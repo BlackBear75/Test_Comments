@@ -92,8 +92,8 @@ export class AddRecordComponent {
   }
 
   onSubmit() {
-    if (!this.file) {
-      this.errorMessage = 'Будь ласка, додайте файл перед відправкою.';
+    if (!this.record.text || !this.captcha) {
+      this.errorMessage = 'Будь ласка, заповніть текст і CAPTCHA перед відправкою.';
       return;
     }
 
@@ -103,12 +103,15 @@ export class AddRecordComponent {
     const formData = new FormData();
     formData.append('text', this.record.text);
     formData.append('captcha', this.captcha);
-    formData.append('file', this.file);
+
+    if (this.file) {
+      formData.append('file', this.file);
+    }
 
     this.recordService.addRecord(formData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.successMessage = 'Запис успішно додано!'; // Встановлюємо повідомлення про успіх
+          this.successMessage = 'Запис успішно додано!';
           this.record.text = '';
           this.captcha = '';
           this.file = null;
@@ -126,6 +129,7 @@ export class AddRecordComponent {
       }
     });
   }
+
 
   closeModal() {
     this.isModalVisible = false;

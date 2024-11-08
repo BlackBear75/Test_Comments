@@ -1,33 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Test_Comments.Entities.RecordGroup.Repository;
+using Test_Comments.Models.RecordModels;
+using Test_Comments.Services;
 
 public interface IRecordService
 {
-    Task<Response> AddRecordAsync(Record record);
-    Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid? parentId, IFormFile file, string captcha, string storedCaptcha);
-    Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take, string sortField, string sortDirection);
-    
+    Task<Response> AddRecordAsync(RecordRequest request, IFormFile file, Guid userId);
+    Task<Response> AddCommentAsync(Guid parentRecordId, RecordController.CommentRequest request, IFormFile? file, Guid userId);
+    Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int page, int pageSize, string sortField, string sortDirection);
     Task<int> GetTotalRootRecordsCountAsync();
 }
 
 public class RecordService : IRecordService
 {
     private readonly IRecordRepository<Record> _recordRepository;
+    private readonly IUserService _userService;
 
-    public RecordService(IRecordRepository<Record> recordRepository)
+    public RecordService(IRecordRepository<Record> recordRepository, IUserService userService)
     {
         _recordRepository = recordRepository;
+        _userService = userService;
     }
 
-    public async Task<Response> AddRecordAsync(Record record)
+    public async Task<Response> AddRecordAsync(RecordRequest request, IFormFile file, Guid userId)
     {
         try
         {
+            var user = await _userService.GetUserAsync(userId);
+            if (user == null)
+            {
+                return new Response { Success = false, Message = "Користувача не знайдено" };
+            }
+
+            var record = new Record
+            {
+                Id = Guid.NewGuid(),
+                UserName = user.Name,
+                Email = user.Email,
+                Text = request.Text,
+                CreationDate = DateTime.UtcNow
+            };
+
+            if (file != null)
+            {
+                if (file.Length > 100 * 1024)
+                {
+                    return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
+                }
+
+                record.FileName = file.FileName;
+                record.FileType = file.ContentType;
+
+                using (var ms = new MemoryStream())
+                {
+                    await file.CopyToAsync(ms);
+                    record.FileData = ms.ToArray();
+                }
+            }
+
             await _recordRepository.InsertOneAsync(record);
             return new Response { Success = true, Message = "Запис успішно додано" };
         }
@@ -37,33 +73,35 @@ public class RecordService : IRecordService
         }
     }
 
-    public async Task<Response> AddCommentAsync(Guid parentRecordId, string text, string userName, string email, Guid? parentId, IFormFile file, string captcha, string storedCaptcha)
+    public async Task<Response> AddCommentAsync(Guid parentRecordId, RecordController.CommentRequest request, IFormFile? file, Guid userId)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(storedCaptcha) || storedCaptcha != captcha)
-            {
-                return new Response { Success = false, Message = "Невірна CAPTCHA" };
-            }
-
             var parentRecord = await _recordRepository.FindByIdAsync(parentRecordId);
             if (parentRecord == null)
             {
                 return new Response { Success = false, Message = "Батьківський запис не знайдено" };
             }
 
+            var user = await _userService.GetUserAsync(userId);
+            if (user == null)
+            {
+                return new Response { Success = false, Message = "Користувача не знайдено" };
+            }
+
             var newComment = new Record
             {
                 Id = Guid.NewGuid(),
-                UserName = userName,
-                Email = email,
-                Text = text,
-                ParentRecordId = parentId ?? parentRecordId 
+                UserName = user.Name,
+                Email = user.Email,
+                Text = request.Text,
+                ParentRecordId = parentRecordId,
+                CreationDate = DateTime.UtcNow
             };
 
             if (file != null)
             {
-                if (file.Length > 100 * 1024) 
+                if (file.Length > 100 * 1024) // Максимальний розмір файлу 100 КБ
                 {
                     return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
                 }
@@ -87,15 +125,16 @@ public class RecordService : IRecordService
         }
     }
 
-
-    public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take, string sortField, string sortDirection)
+    public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int page, int pageSize, string sortField, string sortDirection)
     {
+        int skip = (page - 1) * pageSize;
+
         Expression<Func<Record, object>> sortExpression = sortField.ToLower() switch
         {
             "username" => r => r.UserName,
             "email" => r => r.Email,
-            "date" => r => r.CreationDate,
-            _ => r => r.CreationDate 
+            "creationdate" => r => r.CreationDate,
+            _ => r => r.CreationDate
         };
 
         bool ascending = sortDirection.ToLower() == "asc";
@@ -105,8 +144,9 @@ public class RecordService : IRecordService
             sortExpression,
             ascending,
             skip,
-            take
+            pageSize
         );
+
         var rootRecordIds = pagedRootRecords.Select(r => r.Id).ToList();
         var allCommentsForRootRecords = await GetAllCommentsRecursively(rootRecordIds);
         var commentsDict = allCommentsForRootRecords
@@ -120,8 +160,6 @@ public class RecordService : IRecordService
 
         return pagedRootRecords.ToList();
     }
-
-
 
     private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)
     {

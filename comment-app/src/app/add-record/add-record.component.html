@@ -40,6 +40,7 @@
       <button type="button" (click)="refreshCaptcha()" class="btn btn-secondary btn-sm mr-2">Оновити CAPTCHA</button>
     </div>
 
-    <button type="submit" [disabled]="!record.text || !captcha || !file" class="btn btn-primary btn-block mt-3">Додати</button>
+    <button type="submit" [disabled]="!record.text || !captcha" class="btn btn-primary btn-block mt-3">Додати</button>
+
   </form>
 </div>
