@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, RouterModule} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {CommentItemComponent} from '../comment-item/comment-item.component';
-import {AddCommentModalComponent} from '../add-comment-modal/add-comment-modal.component';
 
 @Component({
   selector: 'app-file-viewer',

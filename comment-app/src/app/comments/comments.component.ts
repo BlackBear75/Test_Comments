@@ -64,7 +64,7 @@ export class CommentsComponent implements OnInit {
           ...record,
           showCommentField: false,
           commentText: '',
-          fileData: record.fileType && record.fileData ? this.processFileData(record.fileData) : null,
+          fileData: record.fileType && record.fileData ? this.processFileData(record.fileData, record.fileType) : null,
           comments: this.processComments(record.comments)
         }));
       },
@@ -77,10 +77,11 @@ export class CommentsComponent implements OnInit {
   processComments(comments: IComment[]): IComment[] {
     return comments.map(comment => ({
       ...comment,
-      fileData: comment.fileType && comment.fileData ? this.processFileData(comment.fileData) : null,
+      fileData: comment.fileType && comment.fileData ? this.processFileData(comment.fileData, comment.fileType) : null,
       comments: comment.comments ? this.processComments(comment.comments) : []
     }));
   }
+
 
   loadTotalRecordsCount() {
     this.recordService.getRecordsCount().subscribe({
@@ -93,23 +94,25 @@ export class CommentsComponent implements OnInit {
     });
   }
 
-  processFileData(fileDataBase64: string): string | null {
-    // Декодуємо Base64 у масив байтів
-    const binary = atob(fileDataBase64);
-    const array = Uint8Array.from(binary, char => char.charCodeAt(0));
+  processFileData(fileDataBase64: string, fileType: string): string | null {
+    if (fileType.startsWith('image/')) {
+      // Якщо це зображення, повертаємо дані Base64 без змін
+      return `data:${fileType};base64,${fileDataBase64}`;
+    } else if (fileType === 'text/plain') {
+      // Якщо це текстовий файл, обробляємо його для відображення на окремій сторінці
+      const binary = atob(fileDataBase64);
+      const array = Uint8Array.from(binary, char => char.charCodeAt(0));
+      const utf8Decoder = new TextDecoder('utf-8');
+      const decodedText = utf8Decoder.decode(array);
+      const encodedText = encodeURIComponent(decodedText);
 
-    // Декодуємо масив байтів як UTF-8 текст
-    const utf8Decoder = new TextDecoder('utf-8');
-    const decodedText = utf8Decoder.decode(array);
-    console.log("UTF-8 декодований текст:", decodedText);
+      // Повертаємо URL для FileViewerComponent
+      return `/file-viewer?text=${encodedText}`;
+    }
 
-    // Кодуємо декодований текст як URI component
-    const encodedText = encodeURIComponent(decodedText);
-
-    // Створюємо URL для FileViewerComponent
-    const templateUrl = `/file-viewer?text=${encodedText}`;
-    return templateUrl;
+    return null; // Якщо тип файлу не підтримується
   }
+
 
 
 
