@@ -28,6 +28,7 @@ export class AddRecordComponent {
   file: File | null = null;
   filePreviewUrl: string | ArrayBuffer | null = null;
   isImage: boolean = false;
+  isFileValid: boolean = true; // Додаємо змінну для валідації файлу
 
   constructor(private recordService: RecordService, private cdr: ChangeDetectorRef) {
     this.refreshCaptcha();
@@ -49,6 +50,7 @@ export class AddRecordComponent {
         this.errorMessage = 'Файл не повинен перевищувати 100 КБ';
         this.file = null;
         this.filePreviewUrl = null;
+        this.isFileValid = false; // Файл недійсний
         return;
       }
 
@@ -57,43 +59,48 @@ export class AddRecordComponent {
         this.file = file;
         this.isImage = fileType.startsWith('image/');
         this.errorMessage = null;
+        this.isFileValid = true; // Файл дійсний
 
         const reader = new FileReader();
         reader.onload = () => {
-          if (this.isImage) {
-            const img = new Image();
-            img.src = reader.result as string;
-            img.onload = () => {
-              if (img.width > 320 || img.height > 240) {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const scale = Math.min(320 / img.width, 240 / img.height);
-                canvas.width = img.width * scale;
-                canvas.height = img.height * scale;
-                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-                this.filePreviewUrl = canvas.toDataURL('image/jpeg');
-              } else {
-                this.filePreviewUrl = reader.result;
-              }
-              this.cdr.detectChanges();
-            };
-          } else {
-            // Очищаємо filePreviewUrl для текстових файлів, щоб не показувати текстове поле
-            this.filePreviewUrl = null;
-          }
+          const img = new Image();
+          img.src = reader.result as string;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Пропорційне зменшення зображення
+            const maxWidth = 320;
+            const maxHeight = 240;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth || height > maxHeight) {
+              const scale = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.floor(width * scale);
+              height = Math.floor(height * scale);
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx?.drawImage(img, 0, 0, width, height);
+            this.filePreviewUrl = canvas.toDataURL('image/jpeg');
+            this.cdr.detectChanges();
+          };
         };
         reader.readAsDataURL(file);
       } else {
-        this.errorMessage = 'Допустимі формати файлів: JPG, GIF, PNG, TXT';
+        this.errorMessage = 'Допустимі формати файлів: JPG, GIF, PNG';
         this.file = null;
         this.filePreviewUrl = null;
+        this.isFileValid = false; // Файл недійсний
       }
     }
   }
 
   onSubmit() {
-    if (!this.record.text || !this.captcha) {
-      this.errorMessage = 'Будь ласка, заповніть текст і CAPTCHA перед відправкою.';
+    if (!this.record.text || !this.captcha || !this.isFileValid) {
+      this.errorMessage = 'Будь ласка, заповніть текст, CAPTCHA і виберіть правильний файл перед відправкою.';
       return;
     }
 
@@ -129,7 +136,6 @@ export class AddRecordComponent {
       }
     });
   }
-
 
   closeModal() {
     this.isModalVisible = false;

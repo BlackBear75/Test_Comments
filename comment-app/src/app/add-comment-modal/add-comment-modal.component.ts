@@ -12,9 +12,9 @@ import { CommonModule } from '@angular/common';
 })
 export class AddCommentModalComponent {
   @Input() isVisible: boolean = false;
-  @Input() parentRecordId?: number; // Ідентифікатор основного запису
-  @Input() parentCommentId?: number; // Ідентифікатор коментаря, на який відповідають (опціонально)
-  @Input() externalErrorMessage: string | null = null; // Зовнішнє повідомлення про помилку
+  @Input() parentRecordId?: number;
+  @Input() parentCommentId?: number;
+  @Input() externalErrorMessage: string | null = null;
   @Output() onClose = new EventEmitter<void>();
   @Output() onCommentAdded = new EventEmitter<{ text: string, captcha: string, file: File | null }>();
 
@@ -23,7 +23,7 @@ export class AddCommentModalComponent {
   captchaUrl: string = '';
   file: File | null = null;
   errorMessage: string | null = null;
-  isFileValid: boolean = true; // Додаємо змінну для валідації файлу
+  isFileValid: boolean = true;
 
   constructor(private recordService: RecordService) {
     this.refreshCaptcha();
@@ -44,16 +44,28 @@ export class AddCommentModalComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const selectedFile = input.files[0];
-      const fileSizeLimit = 100 * 1024;
+      const fileSizeLimit = 100 * 1024; // 100 KB
+
+      // Reset file validity and error message
+      this.isFileValid = true;
+      this.errorMessage = null;
 
       if (selectedFile.size > fileSizeLimit) {
         this.errorMessage = 'Файл не повинен перевищувати 100 КБ';
         this.isFileValid = false;
         this.file = null;
-      } else {
+        return;
+      }
+
+      const fileType = selectedFile.type;
+      if (fileType.startsWith('image/')) {
         this.file = selectedFile;
-        this.isFileValid = true;
+        this.isFileValid = true; // File type is valid
         this.errorMessage = null;
+      } else {
+        this.errorMessage = 'Допустимі формати файлів: JPG, GIF, PNG';
+        this.file = null;
+        this.isFileValid = false; // File type is invalid
       }
     }
   }
@@ -63,7 +75,7 @@ export class AddCommentModalComponent {
       this.errorMessage = 'Заповніть всі обов’язкові поля.';
       return;
     }
-    this.refreshCaptcha()
+
     this.errorMessage = null;
     this.onCommentAdded.emit({
       text: this.commentText,
@@ -74,11 +86,9 @@ export class AddCommentModalComponent {
 
   closeModal() {
     this.clearForm();
-    this.refreshCaptcha()
     this.onClose.emit();
     this.isVisible = false;
   }
-
 
   clearForm() {
     this.commentText = '';

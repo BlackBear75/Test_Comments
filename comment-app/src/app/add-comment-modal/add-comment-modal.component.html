@@ -19,9 +19,10 @@
 
           <div class="form-group">
             <label for="file">Файл:</label>
-            <input type="file" (change)="onFileSelected($event)" class="form-control-file" />
+            <input type="file" (change)="onFileSelected($event)" class="form-control-file" accept=".jpg, .jpeg, .png, .gif" />
             <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 КБ)</small>
           </div>
+
 
           <div class="captcha-container form-group d-flex align-items-center">
             <img [src]="captchaUrl" alt="CAPTCHA" class="captcha-image mr-3" style="max-width: 120px; height: auto;" />
@@ -38,7 +39,9 @@
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary" [disabled]="!commentText || !captcha || !isFileValid">Додати</button> 
+          <button type="submit" class="btn btn-primary"
+                  [disabled]="!commentText || !captcha || !isFileValid">Додати</button>
+
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Закрити</button>
         </div>
       </form>

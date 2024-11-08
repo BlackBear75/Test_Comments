@@ -19,9 +19,10 @@
 
     <div class="form-group">
       <label for="file">Завантажити файл:</label>
-      <input type="file" (change)="onFileSelected($event)" class="form-control" />
-      <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 кб)</small>
+      <input type="file" (change)="onFileSelected($event)" class="form-control" accept=".jpg,.jpeg,.png,.gif,.txt" />
+      <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 КБ)</small>
     </div>
+
 
     <div *ngIf="filePreviewUrl && isImage" class="preview-container mt-3">
       <img [src]="filePreviewUrl" alt="Preview" class="img-thumbnail" />
@@ -40,7 +41,8 @@
       <button type="button" (click)="refreshCaptcha()" class="btn btn-secondary btn-sm mr-2">Оновити CAPTCHA</button>
     </div>
 
-    <button type="submit" [disabled]="!record.text || !captcha" class="btn btn-primary btn-block mt-3">Додати</button>
+    <button type="submit" [disabled]="!record.text || !captcha || !isFileValid" class="btn btn-primary btn-block mt-3">Додати</button>
+
 
   </form>
 </div>
