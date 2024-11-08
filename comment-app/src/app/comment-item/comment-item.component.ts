@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { IComment } from '../comments/comments.component';
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-comment-item',
@@ -15,7 +15,7 @@ export class CommentItemComponent {
   @Output() addReply = new EventEmitter<{ parentCommentId: number }>();
 
   openReplyModal() {
-    // Викликаємо подію для відкриття модального вікна у батьківському компоненті
     this.addReply.emit({ parentCommentId: this.comment.id });
   }
+
 }

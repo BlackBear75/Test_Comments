@@ -13,8 +13,11 @@
             <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
           </a>
         </div>
+
         <div *ngIf="record.fileType === 'text/plain'" class="mt-2">
-          <pre class="text-muted">{{ record.fileData }}</pre>
+          <a [href]="record.fileData" target="_blank" class="text-primary">
+            Переглянути файл: {{ record.fileName }}
+          </a>
         </div>
       </div>
 

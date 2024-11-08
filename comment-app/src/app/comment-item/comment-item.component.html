@@ -5,6 +5,21 @@
   </div>
   <p class="mb-1">{{ comment.text }}</p>
 
+  <div *ngIf="comment.fileType">
+    <div *ngIf="comment.fileType.startsWith('image/')">
+      <a [href]="comment.fileData" data-lightbox="comment-image" data-title="{{ comment.fileName }}">
+        <img [src]="comment.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
+      </a>
+    </div>
+
+    <div *ngIf="comment.fileType === 'text/plain'" class="mt-2">
+      <a [href]="comment.fileData" target="_blank" class="text-primary">
+        Переглянути файл: {{ comment.fileName }}
+      </a>
+    </div>
+  </div>
+
+
   <div class="mb-2">
     <button class="btn btn-link btn-sm text-primary p-0" (click)="openReplyModal()">Відповісти</button>
   </div>

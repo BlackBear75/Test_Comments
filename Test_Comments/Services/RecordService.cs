@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Test_Comments.Entities.RecordGroup.Repository;
 
@@ -38,7 +39,6 @@ public class RecordService : IRecordService
     {
         try
         {
-            // Перевірка CAPTCHA
             if (string.IsNullOrWhiteSpace(storedCaptcha) || storedCaptcha != captcha)
             {
                 return new Response { Success = false, Message = "Невірна CAPTCHA" };
@@ -56,13 +56,12 @@ public class RecordService : IRecordService
                 UserName = userName,
                 Email = email,
                 Text = text,
-                ParentRecordId = parentId ?? parentRecordId // зберігаємо ParentId, якщо це вкладений коментар
+                ParentRecordId = parentId ?? parentRecordId 
             };
 
-            // Додавання файлу, якщо він є
             if (file != null)
             {
-                if (file.Length > 100 * 1024) // Максимальний розмір файлу 100 КБ
+                if (file.Length > 100 * 1024) 
                 {
                     return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
                 }
@@ -86,21 +85,53 @@ public class RecordService : IRecordService
         }
     }
 
+
     public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int skip, int take)
     {
         var pagedRootRecords = await _recordRepository.FilterBySkipAsync(r => r.ParentRecordId == null, skip, take);
         var rootRecordIds = pagedRootRecords.Select(r => r.Id).ToList();
         var allCommentsForRootRecords = await GetAllCommentsRecursively(rootRecordIds);
-        var commentsDict = allCommentsForRootRecords.GroupBy(c => c.ParentRecordId)
+        var commentsDict = allCommentsForRootRecords
+            .GroupBy(c => c.ParentRecordId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
         foreach (var record in pagedRootRecords)
         {
             record.Comments = BuildCommentsHierarchy(record.Id, commentsDict);
+
+            // Перевіряємо, чи є файл текстовим, і декодуємо його вміст для виведення
+            if (record.FileData != null && record.FileType == "text/plain")
+            {
+                var decodedContent = Encoding.UTF8.GetString(record.FileData); // Перетворюємо в UTF-8
+                Console.WriteLine($"Вміст текстового файлу для запису {record.Id}: {decodedContent}");
+            }
+
+            // Виводимо вміст текстових файлів у коментарях, якщо такі є
+            foreach (var comment in record.Comments)
+            {
+                PrintDecodedFileContent(comment);
+            }
         }
 
         return pagedRootRecords.ToList();
     }
+
+// Рекурсивний метод для виведення вмісту файлів у коментарях
+    private void PrintDecodedFileContent(Record comment)
+    {
+        if (comment.FileData != null && comment.FileType == "text/plain")
+        {
+            var decodedContent = Encoding.UTF8.GetString(comment.FileData);
+            Console.WriteLine($"Вміст текстового файлу для коментаря {comment.Id}: {decodedContent}");
+        }
+
+        // Рекурсія для вкладених коментарів
+        foreach (var nestedComment in comment.Comments)
+        {
+            PrintDecodedFileContent(nestedComment);
+        }
+    }
+
 
     private async Task<List<Record>> GetAllCommentsRecursively(List<Guid> parentIds)
     {
@@ -109,9 +140,7 @@ public class RecordService : IRecordService
         while (parentIds.Any())
         {
             var comments = await _recordRepository.FilterByAsync(c => parentIds.Contains(c.ParentRecordId ?? Guid.Empty));
-
             allComments.AddRange(comments);
-
             parentIds = comments.Select(c => c.Id).ToList();
         }
 
@@ -145,4 +174,3 @@ public class Response
     public bool Success { get; set; }
     public string Message { get; set; }
 }
-

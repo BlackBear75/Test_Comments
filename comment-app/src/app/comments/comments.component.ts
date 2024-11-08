@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { RecordService } from '../services/record.service';
-import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { CommentItemComponent } from '../comment-item/comment-item.component';
-import { AddCommentModalComponent } from '../add-comment-modal/add-comment-modal.component';
+import {Component, OnInit} from '@angular/core';
+import {RecordService} from '../services/record.service';
+import {RouterModule} from '@angular/router';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {CommentItemComponent} from '../comment-item/comment-item.component';
+import {AddCommentModalComponent} from '../add-comment-modal/add-comment-modal.component';
 
 export interface IRecord {
   id: number;
@@ -29,6 +29,9 @@ export interface IComment {
   comments?: IComment[];
   showReplyField?: boolean;
   replyText?: string;
+  fileName?: string;
+  fileType?: string;
+  fileData?: string | null;
 }
 
 @Component({
@@ -61,13 +64,22 @@ export class CommentsComponent implements OnInit {
           ...record,
           showCommentField: false,
           commentText: '',
-          fileData: record.fileType && record.fileData ? this.processFileData(record.fileData, record.fileType) : null
+          fileData: record.fileType && record.fileData ? this.processFileData(record.fileData) : null,
+          comments: this.processComments(record.comments)
         }));
       },
       error: (error) => {
         console.error('Помилка завантаження записів:', error);
       }
     });
+  }
+
+  processComments(comments: IComment[]): IComment[] {
+    return comments.map(comment => ({
+      ...comment,
+      fileData: comment.fileType && comment.fileData ? this.processFileData(comment.fileData) : null,
+      comments: comment.comments ? this.processComments(comment.comments) : []
+    }));
   }
 
   loadTotalRecordsCount() {
@@ -81,18 +93,25 @@ export class CommentsComponent implements OnInit {
     });
   }
 
-  processFileData(fileData: string, fileType: string): string {
-    if (fileType.startsWith('image/')) {
-      const binary = atob(fileData);
-      const array = [];
-      for (let i = 0; i < binary.length; i++) {
-        array.push(binary.charCodeAt(i));
-      }
-      const blob = new Blob([new Uint8Array(array)], { type: fileType });
-      return URL.createObjectURL(blob);
-    }
-    return atob(fileData);
+  processFileData(fileDataBase64: string): string | null {
+    // Декодуємо Base64 у масив байтів
+    const binary = atob(fileDataBase64);
+    const array = Uint8Array.from(binary, char => char.charCodeAt(0));
+
+    // Декодуємо масив байтів як UTF-8 текст
+    const utf8Decoder = new TextDecoder('utf-8');
+    const decodedText = utf8Decoder.decode(array);
+    console.log("UTF-8 декодований текст:", decodedText);
+
+    // Кодуємо декодований текст як URI component
+    const encodedText = encodeURIComponent(decodedText);
+
+    // Створюємо URL для FileViewerComponent
+    const templateUrl = `/file-viewer?text=${encodedText}`;
+    return templateUrl;
   }
+
+
 
   openCommentModal(recordId: number, commentId?: number) {
     console.log(`Opening modal for recordId: ${recordId}, parentCommentId: ${commentId}`);
@@ -101,9 +120,6 @@ export class CommentsComponent implements OnInit {
     this.isCommentModalVisible = true;
   }
 
-
-
-
   closeCommentModal() {
     this.isCommentModalVisible = false;
     this.selectedRecordId = undefined;
@@ -111,14 +127,15 @@ export class CommentsComponent implements OnInit {
   }
 
   handleCommentAdded(commentData: { text: string; captcha: string; file: File | null }) {
-    if (this.selectedRecordId) {
-      const formData = new FormData();
-      formData.append('text', commentData.text);
-      formData.append('captcha', commentData.captcha);
-      formData.append('file', commentData.file || new Blob());
+    const formData = new FormData();
+    formData.append('text', commentData.text);
+    formData.append('captcha', commentData.captcha);
+    formData.append('file', commentData.file || new Blob());
 
+    const recordIdToUse = this.selectedCommentId ?? this.selectedRecordId;
 
-      this.recordService.addComment(this.selectedCommentId, formData).subscribe({
+    if (recordIdToUse) {
+      this.recordService.addComment(recordIdToUse, formData).subscribe({
         next: (savedComment) => {
           console.log('Коментар успішно додано:', savedComment);
           this.closeCommentModal();
