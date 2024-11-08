@@ -8,3 +8,25 @@
   border-radius: 8px;
   background-color: #f7f7f7;
 }
+.table th {
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+}
+
+.table th:hover {
+  background-color: #f8f9fa; /* Зміна фону при наведенні */
+  cursor: pointer;
+}
+
+.table th span {
+  position: absolute; /* Робимо іконку сортування абсолютною */
+  right: 10px; /* Відступ з правого боку */
+  top: 50%; /* Центруємо по вертикалі */
+  transform: translateY(-50%); /* Центруємо по вертикалі */
+}
+
+.table th .sort-icon {
+  display: inline-block;
+  width: 20px; /* Ширина іконки */
+  height: 20px; /* Висота іконки */
+}
