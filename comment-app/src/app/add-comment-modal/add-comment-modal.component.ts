@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RecordService } from '../services/record.service';
+import { FileService } from '../services/file.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -22,10 +23,11 @@ export class AddCommentModalComponent {
   captcha: string = '';
   captchaUrl: string = '';
   file: File | null = null;
+  filePreviewUrl: string | ArrayBuffer | null = null;
   errorMessage: string | null = null;
   isFileValid: boolean = true;
 
-  constructor(private recordService: RecordService) {
+  constructor(private recordService: RecordService, private fileService: FileService) {
     this.refreshCaptcha();
   }
 
@@ -44,28 +46,16 @@ export class AddCommentModalComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const selectedFile = input.files[0];
-      const fileSizeLimit = 100 * 1024; // 100 KB
+      const validation = this.fileService.validateFile(selectedFile);
 
-      // Reset file validity and error message
-      this.isFileValid = true;
-      this.errorMessage = null;
+      this.isFileValid = validation.isValid;
+      this.errorMessage = validation.errorMessage;
+      this.file = this.isFileValid ? selectedFile : null;
 
-      if (selectedFile.size > fileSizeLimit) {
-        this.errorMessage = 'Файл не повинен перевищувати 100 КБ';
-        this.isFileValid = false;
-        this.file = null;
-        return;
-      }
-
-      const fileType = selectedFile.type;
-      if (fileType.startsWith('image/')) {
-        this.file = selectedFile;
-        this.isFileValid = true; // File type is valid
-        this.errorMessage = null;
-      } else {
-        this.errorMessage = 'Допустимі формати файлів: JPG, GIF, PNG';
-        this.file = null;
-        this.isFileValid = false; // File type is invalid
+      if (this.isFileValid) {
+        this.fileService.getFilePreview(selectedFile, (preview) => {
+          this.filePreviewUrl = preview;
+        });
       }
     }
   }
@@ -94,6 +84,7 @@ export class AddCommentModalComponent {
     this.commentText = '';
     this.captcha = '';
     this.file = null;
+    this.filePreviewUrl = null;
     this.errorMessage = null;
     this.isFileValid = true;
   }

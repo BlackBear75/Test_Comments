@@ -43,9 +43,4 @@ export class RecordService {
     return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, formData, { withCredentials: true });
   }
 
-
-
-  getCommentsHierarchy(recordId: number): Observable<IComment[]> {
-    return this.http.get<IComment[]>(`${this.apiUrl}/${recordId}/comments-hierarchy`, { withCredentials: true });
-  }
 }
