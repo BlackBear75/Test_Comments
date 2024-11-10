@@ -16,6 +16,4 @@ public class User : Document
     
     [Required]
     public string PasswordHash { get; set; }
-
-    public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 }

@@ -20,8 +20,6 @@ public static class DependencyStartup
         AddCorsPolicy(builder.Services);
         AddInfrastructure(builder.Services);
         AddServices(builder.Services);
-        
-        
     }
 
     private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
@@ -43,9 +41,6 @@ public static class DependencyStartup
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRecordService, RecordService>();
-        
-      
-      
     }
     private static void AddInfrastructure(IServiceCollection services)
     {
@@ -55,6 +50,16 @@ public static class DependencyStartup
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Test Comments API", Version = "v1" });
+        });
+        
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            
         });
     }
     private static void AddCorsPolicy(IServiceCollection services)
@@ -72,16 +77,6 @@ public static class DependencyStartup
             
         });
         
-        services.AddSession(options =>
-        {
-            options.IdleTimeout = TimeSpan.FromMinutes(30);
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-            options.Cookie.SameSite = SameSiteMode.None;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            
-        });
 
-        services.AddControllers();
     }
 }

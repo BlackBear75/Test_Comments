@@ -7,13 +7,13 @@
 
   <div *ngIf="comment.fileType">
     <div *ngIf="comment.fileType.startsWith('image/')">
-      <a [href]="comment.fileData" data-lightbox="comment-image" data-title="{{ comment.fileName }}">
-        <img [src]="comment.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
+      <a [href]="sanitizedFileDataUrl" data-lightbox="comment-image" data-title="{{ comment.fileName }}">
+        <img [src]="sanitizedFileDataUrl" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
       </a>
     </div>
 
     <div *ngIf="comment.fileType === 'text/plain'" class="mt-2">
-      <a [href]="comment.fileData" target="_blank" class="btn btn-link text-primary">
+      <a [href]="sanitizedFileDataUrl" target="_blank" class="btn btn-link text-primary">
         Переглянути файл: {{ comment.fileName }}
       </a>
     </div>

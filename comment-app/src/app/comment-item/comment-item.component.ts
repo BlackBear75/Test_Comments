@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-comment-item',
@@ -16,7 +17,23 @@ export class CommentItemComponent {
   @Input() comment!: IComment;
   @Output() addReply = new EventEmitter<{ parentCommentId: number }>();
 
-  constructor(private authService: AuthService, private router: Router) {}
+  sanitizedFileDataUrl?: SafeUrl;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private sanitizer: DomSanitizer
+  ) {}
+
+  ngOnInit() {
+    this.sanitizeFileData();
+  }
+
+  sanitizeFileData() {
+    if (this.comment.fileData) {
+      this.sanitizedFileDataUrl = this.sanitizer.bypassSecurityTrustUrl(this.comment.fileData);
+    }
+  }
 
   openReplyModal() {
     if (this.authService.isLoggedIn()) {

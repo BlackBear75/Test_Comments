@@ -16,7 +16,7 @@ public class Record : Document
     public Guid? ParentRecordId { get; set; }
 
     [NotMapped]
-    public List<Record> Comments { get; set; } = new List<Record>();
+    public List<Record> Comments { get; set; }
 
     public string? FileName { get; set; }
     public string? FileType { get; set; } 

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Test_Comments       
+      dockerfile: Dockerfile_back      
+    ports:
+      - "7092:7092"
+    environment:
+      - ASPNETCORE_URLS=http://+:7092
+
+  frontend:
+    build:
+      context: ./comment-app          
+      dockerfile: Dockerfile_front     
+    ports:
+      - "4200:80"

@@ -46,18 +46,18 @@ namespace Test_Comments.Controllers
             var userId = User.FindFirst("userId")?.Value;
             if (userId == null)
             {
-                return Unauthorized("User ID not found in token.");
+                return Unauthorized(new { message = "User ID not found in token." });
             }
 
-            try
+            var result = await _userService.UpdateProfileAsync(Guid.Parse(userId), request);
+
+            if (!result.Success)
             {
-                await _userService.UpdateProfileAsync(Guid.Parse(userId), request);
-                return NoContent();
+                return BadRequest(result);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+
+            return Ok(result);
         }
+
     }
 }

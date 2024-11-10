@@ -1,8 +1,8 @@
 import { Component, HostListener } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import {FormsModule} from '@angular/forms';
-import {RouterModule} from '@angular/router';
-import {CommonModule} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -27,5 +27,10 @@ export class AppComponent {
       this.isNavbarVisible = true;
     }
     this.lastScrollTop = scrollTop;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadHandler(event: Event) {
+    this.authService.logout();
   }
 }

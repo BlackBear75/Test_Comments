@@ -35,6 +35,10 @@
     </div>
   </div>
 
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
   <button *ngIf="!isEditing" (click)="editProfile()" class="edit-button">Редагувати профіль</button>
   <button
     *ngIf="isEditing"

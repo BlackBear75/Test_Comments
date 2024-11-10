@@ -42,16 +42,21 @@ export class ProfileComponent implements OnInit {
 
   saveProfile() {
     this.authService.updateProfile(this.user).subscribe({
-      next: () => {
-        this.isEditing = false;
-        this.errorMessage = null;
+      next: (response) => {
+        if (response.success) {
+          this.isEditing = false;
+          this.errorMessage = null;
+        } else {
+          this.errorMessage = response.message;
+        }
       },
       error: (error) => {
         console.error('Error updating profile', error);
-        this.errorMessage = 'Не вдалося оновити профіль. Спробуйте пізніше.';
+        this.errorMessage = error.error.message || 'Не вдалося оновити профіль. Спробуйте пізніше.';
       }
     });
   }
+
 
   logout() {
     this.authService.logout();

@@ -1,43 +1,39 @@
-﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
-namespace Test_Comments.Helpers
+namespace Test_Comments.Helper
 {
     public static class HtmlHelper
     {
-        private static readonly List<string> AllowedTags = new List<string> { "a", "code", "i", "strong" };
+        private static readonly string[] AllowedTags = { "b", "i", "u", "strong", "em", "p" };
 
-        public static string SanitizeHTML(string inputText)
+        public static string SanitizeHTML(string input)
         {
-            string tagPattern = @"<\/?(?!a|code|i|strong\b)[^>]*>";
-            return Regex.Replace(inputText, tagPattern, string.Empty);
+            string pattern = $@"</?(?!({string.Join("|", AllowedTags)})\b)\w+.*?>";
+            return Regex.Replace(input, pattern, string.Empty, RegexOptions.IgnoreCase);
         }
 
-        public static bool ValidateHTMLTags(string inputText)
+        public static bool ValidateHTMLTags(string input)
         {
-            var tagPattern = new Regex(@"<\/?([a-z]+)(?:\s+[^>]*)?>", RegexOptions.IgnoreCase);
-            var stack = new Stack<string>();
-            var matches = tagPattern.Matches(inputText);
-
-            foreach (Match match in matches)
+            var tagStack = new Stack<string>();
+            var tagRegex = new Regex(@"<(/?)(\w+)[^>]*>", RegexOptions.IgnoreCase);
+            foreach (Match match in tagRegex.Matches(input))
             {
-                var tagName = match.Groups[1].Value.ToLower();
+                var isClosingTag = match.Groups[1].Value == "/";
+                var tagName = match.Groups[2].Value.ToLower();
 
-                if (AllowedTags.Contains(tagName))
+                if (!AllowedTags.Contains(tagName)) continue;
+
+                if (isClosingTag)
                 {
-                    if (match.Value.StartsWith("</"))
-                    {
-                        if (stack.Count == 0 || stack.Pop() != tagName)
-                            return false;
-                    }
-                    else
-                    {
-                        stack.Push(tagName);
-                    }
+                    if (tagStack.Count == 0 || tagStack.Pop() != tagName) return false;
+                }
+                else
+                {
+                    tagStack.Push(tagName);
                 }
             }
 
-            return stack.Count == 0; 
+            return tagStack.Count == 0;
         }
     }
 }
