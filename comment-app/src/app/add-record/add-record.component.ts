@@ -1,8 +1,8 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, Input, Output, EventEmitter } from '@angular/core';
 import { RecordService } from '../services/record.service';
+import { FileService } from '../services/file.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import {FileService} from '../services/file.service';
 
 export interface RecordRequest {
   text: string;
@@ -17,6 +17,9 @@ export interface RecordRequest {
   styleUrls: ['./add-record.component.css']
 })
 export class AddRecordComponent {
+  @Input() parentRecordId?: number; // Додано поле для parentRecordId
+  @Output() onRecordAdded = new EventEmitter<void>(); // Додано для повідомлення про додавання запису/коментаря
+
   record = {
     text: '',
   };
@@ -31,7 +34,11 @@ export class AddRecordComponent {
   isImage: boolean = false;
   isFileValid: boolean = true;
 
-  constructor(private recordService: RecordService, private fileService: FileService, private cdr: ChangeDetectorRef) {
+  constructor(
+    private recordService: RecordService,
+    private fileService: FileService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.refreshCaptcha();
   }
 
@@ -77,16 +84,15 @@ export class AddRecordComponent {
       formData.append('file', this.file);
     }
 
+    // Виклик addRecord з parentRecordId
     this.recordService.addRecord(formData).subscribe({
       next: (response) => {
         if (response.success) {
           this.successMessage = 'Запис успішно додано!';
-          this.record.text = '';
-          this.captcha = '';
-          this.file = null;
-          this.filePreviewUrl = null;
+          this.clearForm();
           this.refreshCaptcha();
           this.isModalVisible = true;
+          this.onRecordAdded.emit(); // Сповіщення про успішне додавання
         } else {
           this.errorMessage = response.message;
           this.refreshCaptcha();
@@ -97,6 +103,13 @@ export class AddRecordComponent {
         this.refreshCaptcha();
       }
     });
+  }
+
+  clearForm() {
+    this.record.text = '';
+    this.captcha = '';
+    this.file = null;
+    this.filePreviewUrl = null;
   }
 
   closeModal() {

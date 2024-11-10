@@ -13,45 +13,30 @@ using Test_Comments.Services;
 public class RecordController : ControllerBase
 {
     private readonly IRecordService _recordService;
-    private readonly IUserService _userService;
 
-    public RecordController(IRecordService recordService, IUserService userService)
+    public RecordController(IRecordService recordService)
     {
         _recordService = recordService;
-        _userService = userService;
     }
 
     [Authorize]
     [HttpPost("add")]
     [ApiExplorerSettings(IgnoreApi = true)]
-    
-    public async Task<IActionResult> AddRecord([FromForm] RecordRequest request, [FromForm] IFormFile? file)
+    public async Task<IActionResult> AddRecord([FromForm] RecordRequest request, [FromForm] IFormFile? file, [FromForm] Guid? parentRecordId = null)
     {
+        var storedCaptcha = HttpContext.Session.GetString("CaptchaCode");
+        if (string.IsNullOrWhiteSpace(request.Captcha) || request.Captcha != storedCaptcha)
+        {
+            return BadRequest(new Response { Success = false, Message = "Невірна CAPTCHA" });
+        }
         var userId = User.FindFirst("userId")?.Value;
         if (userId == null)
         {
             return Unauthorized(new Response { Success = false, Message = "Невідомий користувач" });
         }
-
-        var result = await _recordService.AddRecordAsync(request, file, Guid.Parse(userId));
+        var result = await _recordService.AddRecordAsync(request, file, Guid.Parse(userId), parentRecordId);
         return result.Success ? Ok(result) : BadRequest(result);
     }
-
-    [Authorize]
-    [HttpPost("{recordId}/add-comment")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public async Task<IActionResult> AddComment(Guid recordId, [FromForm] CommentRequest request, [FromForm] IFormFile? file)
-    {
-        var userId = User.FindFirst("userId")?.Value;
-        if (userId == null)
-        {
-            return Unauthorized(new Response { Success = false, Message = "Невідомий користувач" });
-        }
-
-        var result = await _recordService.AddCommentAsync(recordId, request, file, Guid.Parse(userId));
-        return result.Success ? Ok(result) : BadRequest(result);
-    }
-
     [HttpGet("paged")]
     public async Task<IActionResult> GetPagedRootRecordsWithComments(int page = 1, int pageSize = 25, string sortField = "creationDate", string sortDirection = "asc")
     {
@@ -65,13 +50,5 @@ public class RecordController : ControllerBase
         var totalCount = await _recordService.GetTotalRootRecordsCountAsync();
         return Ok(totalCount);
     }
-
-    public class CommentRequest
-    {
-        [Required]
-        public string Text { get; set; }
-
-        [Required]
-        public string Captcha { get; set; }
-    }
+    
 }

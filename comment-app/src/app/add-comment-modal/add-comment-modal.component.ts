@@ -13,11 +13,11 @@ import { CommonModule } from '@angular/common';
 })
 export class AddCommentModalComponent {
   @Input() isVisible: boolean = false;
-  @Input() parentRecordId?: number;
-  @Input() parentCommentId?: number;
+  @Input() parentRecordId?: number; // ID батьківського запису
+  @Input() parentCommentId?: number; // ID батьківського коментаря, якщо потрібне вкладене коментування
   @Input() externalErrorMessage: string | null = null;
   @Output() onClose = new EventEmitter<void>();
-  @Output() onCommentAdded = new EventEmitter<{ text: string, captcha: string, file: File | null }>();
+  @Output() onCommentAdded = new EventEmitter<void>();
 
   commentText: string = '';
   captcha: string = '';
@@ -66,13 +66,34 @@ export class AddCommentModalComponent {
       return;
     }
 
-    this.errorMessage = null;
-    this.onCommentAdded.emit({
-      text: this.commentText,
-      captcha: this.captcha,
-      file: this.file
+    const formData = new FormData();
+    formData.append('text', this.commentText);
+    formData.append('captcha', this.captcha);
+
+    if (this.file) {
+      formData.append('file', this.file);
+    }
+
+    // Передаємо parentRecordId у formData, якщо він заданий
+    if (this.parentCommentId) {
+      formData.append('parentRecordId', this.parentCommentId.toString());
+    } else if (this.parentRecordId) {
+      formData.append('parentRecordId', this.parentRecordId.toString());
+    }
+
+    this.recordService.addRecord(formData).subscribe({
+      next: () => {
+        this.clearForm();
+        this.onCommentAdded.emit();
+        this.closeModal();
+      },
+      error: (error) => {
+        this.errorMessage = error.error?.message || 'Сталася помилка при додаванні коментаря.';
+        this.refreshCaptcha();
+      }
     });
   }
+
 
   closeModal() {
     this.clearForm();

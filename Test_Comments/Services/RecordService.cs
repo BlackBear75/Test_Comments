@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Linq.Expressions;
 using Test_Comments.Entities.RecordGroup.Repository;
 using Test_Comments.Models.RecordModels;
-using Test_Comments.Services;
+
+namespace Test_Comments.Services;
 
 public interface IRecordService
 {
-    Task<Response> AddRecordAsync(RecordRequest request, IFormFile file, Guid userId);
-    Task<Response> AddCommentAsync(Guid parentRecordId, RecordController.CommentRequest request, IFormFile? file, Guid userId);
+    Task<Response> AddRecordAsync(RecordRequest request, IFormFile? file, Guid userId, Guid? parentRecordId = null);
     Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int page, int pageSize, string sortField, string sortDirection);
     Task<int> GetTotalRootRecordsCountAsync();
 }
@@ -28,7 +22,7 @@ public class RecordService : IRecordService
         _userService = userService;
     }
 
-    public async Task<Response> AddRecordAsync(RecordRequest request, IFormFile file, Guid userId)
+    public async Task<Response> AddRecordAsync(RecordRequest request, IFormFile? file, Guid userId, Guid? parentRecordId = null)
     {
         try
         {
@@ -44,6 +38,7 @@ public class RecordService : IRecordService
                 UserName = user.Name,
                 Email = user.Email,
                 Text = request.Text,
+                ParentRecordId = parentRecordId,
                 CreationDate = DateTime.UtcNow
             };
 
@@ -65,66 +60,14 @@ public class RecordService : IRecordService
             }
 
             await _recordRepository.InsertOneAsync(record);
-            return new Response { Success = true, Message = "Запис успішно додано" };
+            return new Response { Success = true, Message = parentRecordId == null ? "Запис успішно додано" : "Коментар успішно додано" };
         }
         catch (Exception ex)
         {
             return new Response { Success = false, Message = $"Помилка: {ex.Message}" };
         }
     }
-
-    public async Task<Response> AddCommentAsync(Guid parentRecordId, RecordController.CommentRequest request, IFormFile? file, Guid userId)
-    {
-        try
-        {
-            var parentRecord = await _recordRepository.FindByIdAsync(parentRecordId);
-            if (parentRecord == null)
-            {
-                return new Response { Success = false, Message = "Батьківський запис не знайдено" };
-            }
-
-            var user = await _userService.GetUserAsync(userId);
-            if (user == null)
-            {
-                return new Response { Success = false, Message = "Користувача не знайдено" };
-            }
-
-            var newComment = new Record
-            {
-                Id = Guid.NewGuid(),
-                UserName = user.Name,
-                Email = user.Email,
-                Text = request.Text,
-                ParentRecordId = parentRecordId,
-                CreationDate = DateTime.UtcNow
-            };
-
-            if (file != null)
-            {
-                if (file.Length > 100 * 1024) // Максимальний розмір файлу 100 КБ
-                {
-                    return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
-                }
-
-                newComment.FileName = file.FileName;
-                newComment.FileType = file.ContentType;
-
-                using (var ms = new MemoryStream())
-                {
-                    await file.CopyToAsync(ms);
-                    newComment.FileData = ms.ToArray();
-                }
-            }
-
-            await _recordRepository.InsertOneAsync(newComment);
-            return new Response { Success = true, Message = "Коментар успішно додано" };
-        }
-        catch (Exception ex)
-        {
-            return new Response { Success = false, Message = $"Помилка: {ex.Message}" };
-        }
-    }
-
+  
     public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int page, int pageSize, string sortField, string sortDirection)
     {
         int skip = (page - 1) * pageSize;

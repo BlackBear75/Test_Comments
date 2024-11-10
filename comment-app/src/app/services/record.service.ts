@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { AuthService } from './auth.service';
@@ -13,10 +13,16 @@ export class RecordService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  addRecord(formData: FormData): Observable<any> {
+  // Об'єднаний метод для додавання записів і коментарів
+  addRecord(formData: FormData, parentRecordId?: string): Observable<any> {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getToken()}`);
+    // Додаємо parentRecordId до formData, якщо він заданий
+    if (parentRecordId) {
+      formData.append('parentRecordId', parentRecordId);
+    }
     return this.http.post(`${this.apiUrl}/add`, formData, { headers, withCredentials: true });
   }
+
 
   getRecords(page: number, pageSize: number, sortField: string, sortDirection: 'asc' | 'desc'): Observable<IRecord[]> {
     let params = new HttpParams()
@@ -38,9 +44,4 @@ export class RecordService {
       withCredentials: true
     });
   }
-
-  addComment(recordId: number | undefined, formData: FormData): Observable<IComment> {
-    return this.http.post<IComment>(`${this.apiUrl}/${recordId}/add-comment`, formData, { withCredentials: true });
-  }
-
 }
