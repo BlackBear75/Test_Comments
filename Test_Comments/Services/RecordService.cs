@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Test_Comments.Entities.RecordGroup.Repository;
+using Test_Comments.Helpers;
 using Test_Comments.Models.RecordModels;
 
 namespace Test_Comments.Services;
@@ -26,6 +27,12 @@ public class RecordService : IRecordService
     {
         try
         {
+            var sanitizedText = HtmlHelper.SanitizeHTML(request.Text);
+            if (!HtmlHelper.ValidateHTMLTags(sanitizedText))
+            {
+                return new Response { Success = false, Message = "HTML містить недійсні або незакриті теги." };
+            }
+
             var user = await _userService.GetUserAsync(userId);
             if (user == null)
             {
@@ -37,7 +44,7 @@ public class RecordService : IRecordService
                 Id = Guid.NewGuid(),
                 UserName = user.Name,
                 Email = user.Email,
-                Text = request.Text,
+                Text = sanitizedText,
                 ParentRecordId = parentRecordId,
                 CreationDate = DateTime.UtcNow
             };

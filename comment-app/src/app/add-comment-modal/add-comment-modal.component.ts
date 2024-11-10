@@ -13,13 +13,14 @@ import { CommonModule } from '@angular/common';
 })
 export class AddCommentModalComponent {
   @Input() isVisible: boolean = false;
-  @Input() parentRecordId?: number; // ID батьківського запису
-  @Input() parentCommentId?: number; // ID батьківського коментаря, якщо потрібне вкладене коментування
+  @Input() parentRecordId?: number;
+  @Input() parentCommentId?: number;
   @Input() externalErrorMessage: string | null = null;
   @Output() onClose = new EventEmitter<void>();
   @Output() onCommentAdded = new EventEmitter<void>();
 
   commentText: string = '';
+  previousText: string = '';
   captcha: string = '';
   captchaUrl: string = '';
   file: File | null = null;
@@ -60,6 +61,30 @@ export class AddCommentModalComponent {
     }
   }
 
+  insertTag(tag: string, attribute: string = '') {
+    this.previousText = this.commentText;
+    const openTag = `<${tag} ${attribute}>`;
+    const closeTag = `</${tag}>`;
+
+    const textArea = document.querySelector('#commentText') as HTMLTextAreaElement;
+    const startPos = textArea.selectionStart;
+    const endPos = textArea.selectionEnd;
+
+    const currentText = this.commentText;
+    this.commentText =
+      currentText.slice(0, startPos) +
+      openTag +
+      currentText.slice(startPos, endPos) +
+      closeTag +
+      currentText.slice(endPos);
+
+    textArea.focus();
+  }
+
+  undoLastInsert() {
+    this.commentText = this.previousText;
+  }
+
   onSubmit() {
     if (!this.commentText || !this.captcha) {
       this.errorMessage = 'Заповніть всі обов’язкові поля.';
@@ -74,7 +99,6 @@ export class AddCommentModalComponent {
       formData.append('file', this.file);
     }
 
-    // Передаємо parentRecordId у formData, якщо він заданий
     if (this.parentCommentId) {
       formData.append('parentRecordId', this.parentCommentId.toString());
     } else if (this.parentRecordId) {
@@ -93,7 +117,6 @@ export class AddCommentModalComponent {
       }
     });
   }
-
 
   closeModal() {
     this.clearForm();

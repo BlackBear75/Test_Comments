@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class FileService {
-  readonly fileSizeLimit = 100 * 1024; // 100 KB
+  readonly fileSizeLimit = 100 * 1024;
   readonly allowedFormats = ['image/jpeg', 'image/png', 'image/gif', 'text/plain'];
 
   validateFile(file: File): { isValid: boolean; errorMessage: string | null } {

@@ -26,8 +26,7 @@ export class LoginComponent {
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-        console.log('Login successful:', response);
-        this.authService.setToken(response.token); // Збереження токена
+        this.authService.setToken(response.token);
         this.router.navigate(['/']);
       },
       error: (error) => {

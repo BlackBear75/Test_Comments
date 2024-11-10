@@ -2,10 +2,18 @@
   <h2 class="text-center mb-4">Додати запис</h2>
 
   <form (ngSubmit)="onSubmit()">
+    <div class="toolbar mt-2 mb-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('i')">[i]</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('strong')">[strong]</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('code')">[code]</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('a', 'href=&quot;https://example.com&quot;')">[a]</button>
+      <button type="button" class="btn btn-outline-danger btn-sm" (click)="undoLastInsert()">Скасувати останню вставку</button>
+    </div>
+
     <div class="form-group">
       <label for="text">Текст запису:</label>
       <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div> <!-- Повідомлення про успіх -->
+      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
       <textarea
         id="text"
         [(ngModel)]="record.text"
@@ -22,7 +30,6 @@
       <input type="file" (change)="onFileSelected($event)" class="form-control" accept=".jpg,.jpeg,.png,.gif,.txt" />
       <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 КБ)</small>
     </div>
-
 
     <div *ngIf="filePreviewUrl && isImage" class="preview-container mt-3">
       <img [src]="filePreviewUrl" alt="Preview" class="img-thumbnail" />
@@ -42,7 +49,5 @@
     </div>
 
     <button type="submit" [disabled]="!record.text || !captcha || !isFileValid" class="btn btn-primary btn-block mt-3">Додати</button>
-
-
   </form>
 </div>

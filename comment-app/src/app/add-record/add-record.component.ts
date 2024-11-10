@@ -17,12 +17,13 @@ export interface RecordRequest {
   styleUrls: ['./add-record.component.css']
 })
 export class AddRecordComponent {
-  @Input() parentRecordId?: number; // Додано поле для parentRecordId
-  @Output() onRecordAdded = new EventEmitter<void>(); // Додано для повідомлення про додавання запису/коментаря
+  @Input() parentRecordId?: number;
+  @Output() onRecordAdded = new EventEmitter<void>();
 
   record = {
     text: '',
   };
+  previousText: string = '';
   captcha: string = '';
   captchaUrl: string = '';
   errorMessage: string | null = null;
@@ -67,6 +68,30 @@ export class AddRecordComponent {
     }
   }
 
+  insertTag(tag: string, attribute: string = '') {
+    this.previousText = this.record.text;
+    const openTag = `<${tag} ${attribute}>`;
+    const closeTag = `</${tag}>`;
+
+    const textArea = document.querySelector('#text') as HTMLTextAreaElement;
+    const startPos = textArea.selectionStart;
+    const endPos = textArea.selectionEnd;
+
+    const currentText = this.record.text;
+    this.record.text =
+      currentText.slice(0, startPos) +
+      openTag +
+      currentText.slice(startPos, endPos) +
+      closeTag +
+      currentText.slice(endPos);
+
+    textArea.focus();
+  }
+
+  undoLastInsert() {
+    this.record.text = this.previousText;
+  }
+
   onSubmit() {
     if (!this.record.text || !this.captcha || !this.isFileValid) {
       this.errorMessage = 'Будь ласка, заповніть текст, CAPTCHA і виберіть правильний файл перед відправкою.';
@@ -84,7 +109,6 @@ export class AddRecordComponent {
       formData.append('file', this.file);
     }
 
-    // Виклик addRecord з parentRecordId
     this.recordService.addRecord(formData).subscribe({
       next: (response) => {
         if (response.success) {
@@ -92,7 +116,7 @@ export class AddRecordComponent {
           this.clearForm();
           this.refreshCaptcha();
           this.isModalVisible = true;
-          this.onRecordAdded.emit(); // Сповіщення про успішне додавання
+          this.onRecordAdded.emit();
         } else {
           this.errorMessage = response.message;
           this.refreshCaptcha();

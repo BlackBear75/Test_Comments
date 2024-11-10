@@ -3,7 +3,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Додати коментар</h5>
-        <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <button type="button" class="close ml-auto" aria-label="Close" (click)="closeModal()">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -12,9 +12,17 @@
           <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
           <div *ngIf="externalErrorMessage" class="alert alert-danger">{{ externalErrorMessage }}</div>
 
+          <div class="toolbar btn-group mt-2 mb-2" role="group" aria-label="Text formatting toolbar">
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('i')">[i]</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('strong')">[strong]</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('code')">[code]</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="insertTag('a', 'href=&quot;https://example.com&quot;')">[a]</button>
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="undoLastInsert()">Скасувати останню вставку</button>
+          </div>
+
           <div class="form-group">
             <label for="commentText">Текст коментаря:</label>
-            <textarea [(ngModel)]="commentText" name="commentText" class="form-control" rows="5" required></textarea>
+            <textarea id="commentText" [(ngModel)]="commentText" name="commentText" class="form-control" rows="5" required></textarea>
           </div>
 
           <div class="form-group">
@@ -23,8 +31,11 @@
             <small class="form-text text-muted">Допустимі формати: JPG, GIF, PNG (320x240) або TXT (до 100 КБ)</small>
           </div>
 
+          <div *ngIf="filePreviewUrl && isFileValid" class="text-center mt-3">
+            <img [src]="filePreviewUrl" alt="Preview" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
+          </div>
 
-          <div class="captcha-container form-group d-flex align-items-center">
+          <div class="captcha-container form-group d-flex align-items-center mt-3">
             <img [src]="captchaUrl" alt="CAPTCHA" class="captcha-image mr-3" style="max-width: 120px; height: auto;" />
             <input
               type="text"
@@ -41,7 +52,6 @@
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary"
                   [disabled]="!commentText || !captcha || !isFileValid">Додати</button>
-
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Закрити</button>
         </div>
       </form>

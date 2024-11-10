@@ -1,4 +1,3 @@
-/* Контейнер для форми */
 .form-container {
   width: 100%;
   max-width: 400px;
@@ -10,7 +9,6 @@
   text-align: center;
 }
 
-/* Додатковий блок для входу */
 .register-link {
   margin-top: 1.5rem;
 }

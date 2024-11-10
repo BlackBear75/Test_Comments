@@ -11,3 +11,10 @@
 .modal {
   background-color: rgba(0, 0, 0, 0.5);
 }
+.toolbar button {
+  margin-right: 8px;
+}
+
+.toolbar button:last-child {
+  margin-right: 0;
+}

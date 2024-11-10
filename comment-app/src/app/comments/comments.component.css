@@ -14,19 +14,19 @@
 }
 
 .table th:hover {
-  background-color: #f8f9fa; /* Зміна фону при наведенні */
+  background-color: #f8f9fa;
   cursor: pointer;
 }
 
 .table th span {
-  position: absolute; /* Робимо іконку сортування абсолютною */
-  right: 10px; /* Відступ з правого боку */
-  top: 50%; /* Центруємо по вертикалі */
-  transform: translateY(-50%); /* Центруємо по вертикалі */
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .table th .sort-icon {
   display: inline-block;
-  width: 20px; /* Ширина іконки */
-  height: 20px; /* Висота іконки */
+  width: 20px;
+  height: 20px;
 }

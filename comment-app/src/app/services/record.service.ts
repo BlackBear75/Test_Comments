@@ -13,10 +13,8 @@ export class RecordService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  // Об'єднаний метод для додавання записів і коментарів
   addRecord(formData: FormData, parentRecordId?: string): Observable<any> {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getToken()}`);
-    // Додаємо parentRecordId до formData, якщо він заданий
     if (parentRecordId) {
       formData.append('parentRecordId', parentRecordId);
     }
