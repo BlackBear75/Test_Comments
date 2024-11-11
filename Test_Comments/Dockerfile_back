@@ -1,34 +1,26 @@
-﻿# Базовий образ ASP.NET для запуску додатку
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 7092
 
-# Встановлюємо змінну середовища для прослуховування всіх IP на порту 7092
 ENV ASPNETCORE_URLS=http://+:7092
 
-# Встановлюємо шрифти для Linux
 RUN apt-get update && \
     apt-get install -y fontconfig fonts-dejavu-core && \
     fc-cache -f -v
 
-# Образ SDK для побудови проєкту
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Копіюємо проект і виконуємо відновлення залежностей
 COPY Test_Comments.csproj ./
 RUN dotnet restore "Test_Comments.csproj"
 
-# Копіюємо весь вміст і будуємо проект
 COPY . .
 RUN dotnet build "Test_Comments.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Публікація проекту
 FROM build AS publish
 RUN dotnet publish "Test_Comments.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Останній образ для запуску додатку
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .

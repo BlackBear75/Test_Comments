@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Test_Comments.Entities.RecordGroup.Repository;
 using Test_Comments.Helper;
+using Test_Comments.Models;
 using Test_Comments.Models.RecordModels;
 
 namespace Test_Comments.Services;
@@ -146,10 +147,4 @@ public class RecordService : IRecordService
     {
         return await _recordRepository.CountAsync(r => r.ParentRecordId == null);
     }
-}
-
-public class Response
-{
-    public bool Success { get; set; }
-    public string Message { get; set; }
 }
