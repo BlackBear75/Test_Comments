@@ -37,7 +37,7 @@ export class RecordService {
   }
 
   getCaptchaImage(): Observable<Blob> {
-    return this.http.get(`https://localhost:7092/api/Captcha/generate`, {
+    return this.http.get(`http://localhost:7092/api/Captcha/generate`, {
       responseType: 'blob',
       withCredentials: true
     });

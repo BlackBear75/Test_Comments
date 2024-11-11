@@ -26,7 +26,14 @@ public static class DependencyStartup
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+        using (var serviceProvider = services.BuildServiceProvider())
+        {
+            var context = serviceProvider.GetRequiredService<AppDbContext>();
+            context.Database.EnsureCreated(); 
+        }
     }
+
 
     private static void AddRepositories(IServiceCollection services)
     {
@@ -70,7 +77,7 @@ public static class DependencyStartup
         {
             options.AddPolicy("AllowSpecificOrigin",
                 builder =>
-                    builder.WithOrigins("http://localhost:4200") 
+                    builder.WithOrigins("http://localhost:8080") 
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials());

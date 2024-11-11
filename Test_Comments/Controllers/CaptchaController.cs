@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
-using System.Drawing;
 using System.IO;
 using System.Text;
 
@@ -20,19 +24,20 @@ namespace Test_Comments.Controllers
             string captchaCode = GenerateCaptchaCode();
             HttpContext.Session.SetString("CaptchaCode", captchaCode);
             
-            using (Bitmap bitmap = new Bitmap(Width, Height))
+            using (Image<Rgba32> image = new Image<Rgba32>(Width, Height))
             {
-                using (Graphics g = Graphics.FromImage(bitmap))
+                image.Mutate(ctx =>
                 {
-                    g.Clear(Color.White);
-                    Font font = new Font("Arial", 24);
-                    g.DrawString(captchaCode, font, Brushes.Black, 10, 10);
-                }
+                    ctx.Fill(Color.White); 
+                    var font = SystemFonts.CreateFont("DejaVu Sans", 24);
 
-                using (MemoryStream ms = new MemoryStream())
+                    ctx.DrawText(captchaCode, font, Color.Black, new PointF(10, 10)); 
+                });
+
+                using (var ms = new MemoryStream())
                 {
-                    bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    return File(ms.ToArray(), "image/png");
+                    image.SaveAsPng(ms); 
+                    return File(ms.ToArray(), "image/png"); 
                 }
             }
         }
@@ -40,8 +45,8 @@ namespace Test_Comments.Controllers
         private string GenerateCaptchaCode()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            StringBuilder captchaCode = new StringBuilder();
-            Random random = new Random();
+            var captchaCode = new StringBuilder();
+            var random = new Random();
 
             for (int i = 0; i < Length; i++)
             {

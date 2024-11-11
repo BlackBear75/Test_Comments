@@ -30,15 +30,16 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseCors("AllowSpecificOrigin");
-app.UseSession(); 
 
+app.UseRouting();
+app.UseSession();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
 
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.UseSwagger(); 
 app.UseSwaggerUI(c =>

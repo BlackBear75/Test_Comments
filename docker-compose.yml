@@ -1,6 +1,14 @@
-version: '3.8'
-
 services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=JEnKins542s
+    ports:
+      - "1433:1433"
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./Test_Comments       
@@ -9,10 +17,19 @@ services:
       - "7092:7092"
     environment:
       - ASPNETCORE_URLS=http://+:7092
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=Test_Comments;User Id=sa;Password=JEnKins542s;Encrypt=False;TrustServerCertificate=True
+    networks:
+      - app-network
 
   frontend:
     build:
       context: ./comment-app          
       dockerfile: Dockerfile_front     
     ports:
-      - "4200:80"
+      - "8080:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

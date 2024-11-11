@@ -1,0 +1,2 @@
+CREATE DATABASE Test_Comments;
+GO
