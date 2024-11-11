@@ -28,4 +28,19 @@ export class FileService {
       callback(null);
     }
   }
+  getTextFileContent(file: File, callback: (textContent: string | null) => void): void {
+    if (file.type === 'text/plain') {
+      const reader = new FileReader();
+      reader.onload = () => {
+        callback(reader.result as string);
+      };
+      reader.onerror = () => {
+        console.error('Помилка при зчитуванні файлу.');
+        callback(null);
+      };
+      reader.readAsText(file);
+    } else {
+      callback(null);
+    }
+  }
 }

@@ -1,7 +1,7 @@
 <div class="comment-item border-left pl-3 my-2">
   <div class="d-flex justify-content-between align-items-center">
     <strong>{{ comment.userName }}</strong>
-    <small class="text-muted"> Дата створення: {{ comment.creationDate | date: 'short' }}</small>
+    <small class="text-muted">Дата створення: {{ comment.creationDate | date: 'short' }}</small>
   </div>
   <p class="mb-1">{{ comment.text }}</p>
 
@@ -13,9 +13,9 @@
     </div>
 
     <div *ngIf="comment.fileType === 'text/plain'" class="mt-2">
-      <a [href]="sanitizedFileDataUrl" target="_blank" class="btn btn-link text-primary">
+      <button class="btn btn-link text-primary" (click)="openFileViewerModal()">
         Переглянути файл: {{ comment.fileName }}
-      </a>
+      </button>
     </div>
   </div>
 
@@ -28,4 +28,12 @@
       <app-comment-item [comment]="reply" (addReply)="addReply.emit($event)"></app-comment-item>
     </ng-container>
   </div>
+
+  <app-file-viewer-modal
+    *ngIf="isFileViewerModalVisible"
+    [fileName]="selectedFileName"
+    [fileType]="selectedFileType"
+    [fileData]="selectedFileData"
+    (onClose)="closeFileViewerModal()">
+  </app-file-viewer-modal>
 </div>

@@ -6,6 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import {FileService} from '../services/file.service';
+import {FileViewerModalComponent} from '../file-viewer-modal/file-viewer-modal.component';
 
 export interface IRecord {
   id: number;
@@ -38,7 +40,7 @@ export interface IComment {
 @Component({
   selector: 'app-comments',
   templateUrl: './comments.component.html',
-  imports: [RouterModule, CommonModule, FormsModule, CommentItemComponent, AddCommentModalComponent],
+  imports: [RouterModule, CommonModule, FormsModule, CommentItemComponent, AddCommentModalComponent, FileViewerModalComponent],
   standalone: true,
   styleUrls: ['./comments.component.css']
 })
@@ -51,21 +53,42 @@ export class CommentsComponent implements OnInit {
   currentPage: number = 1;
   recordsPerPage: number = 25;
   totalRecords: number = 0;
-
+  isFileViewerModalVisible = false;
+  selectedFileName = '';
+  selectedFileType = '';
+  selectedFileData = '';
   sortField: string = 'date';
   sortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(
     private recordService: RecordService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private fileService: FileService,
   ) {}
 
   ngOnInit(): void {
     this.loadRecords();
     this.loadTotalRecordsCount();
   }
+  openFileViewerModal(fileName: string | undefined, fileType: string, fileData: string | null | undefined) {
+    if (fileType === 'text/plain' && fileData) {
+      this.selectedFileName = fileName || 'Unnamed File';
+      this.selectedFileType = fileType;
 
+      this.selectedFileData = this.processFileData(fileData, fileType) || '';
+
+      console.log('Декодований текстовий файл:', this.selectedFileData);
+
+      this.isFileViewerModalVisible = true;
+    }
+  }
+
+
+
+  closeFileViewerModal() {
+    this.isFileViewerModalVisible = false;
+  }
   loadRecords() {
     this.recordService.getRecords(this.currentPage, this.recordsPerPage, this.sortField, this.sortDirection).subscribe({
       next: (data) => {
@@ -99,15 +122,32 @@ export class CommentsComponent implements OnInit {
     if (fileType.startsWith('image/')) {
       return `data:${fileType};base64,${fileDataBase64}`;
     } else if (fileType === 'text/plain') {
+      if (!this.isBase64(fileDataBase64)) {
+        console.warn('Попередження: Файл не є у форматі Base64. Повертаємо вміст напряму.');
+        return decodeURIComponent(fileDataBase64);
+      }
+
       const binary = atob(fileDataBase64);
       const array = Uint8Array.from(binary, char => char.charCodeAt(0));
       const utf8Decoder = new TextDecoder('utf-8');
       const decodedText = utf8Decoder.decode(array);
-      const encodedText = encodeURIComponent(decodedText);
-      return `/file-viewer?text=${encodedText}`;
+
+      console.log('Декодований текстовий файл:', decodedText);
+
+      return decodedText;
     }
     return null;
   }
+
+
+  isBase64(str: string): boolean {
+    try {
+      return btoa(atob(str)) === str;
+    } catch (err) {
+      return false;
+    }
+  }
+
 
   loadTotalRecordsCount() {
     this.recordService.getRecordsCount().subscribe({

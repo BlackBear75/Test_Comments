@@ -32,8 +32,11 @@
             <img [src]="record.fileData" alt="Зображення" class="img-thumbnail" style="max-width: 320px; max-height: 240px;" />
           </a>
         </div>
+
         <div *ngIf="record.fileType === 'text/plain'" class="mt-2">
-          <a [href]="record.fileData" target="_blank" class="text-primary">Переглянути файл: {{ record.fileName }}</a>
+          <button class="btn btn-link text-primary" (click)="openFileViewerModal(record.fileName, record.fileType, record.fileData)">
+            Переглянути файл: {{ record.fileName }}
+          </button>
         </div>
       </div>
 
@@ -71,4 +74,12 @@
     (onClose)="closeCommentModal()"
     (onCommentAdded)="handleCommentAdded()">
   </app-add-comment-modal>
+
+  <app-file-viewer-modal
+    *ngIf="isFileViewerModalVisible"
+    [fileName]="selectedFileName"
+    [fileType]="selectedFileType"
+    [fileData]="selectedFileData"
+    (onClose)="closeFileViewerModal()">
+  </app-file-viewer-modal>
 </div>
