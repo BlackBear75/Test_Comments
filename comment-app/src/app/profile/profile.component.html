@@ -1,8 +1,8 @@
-<div *ngIf="user; else loading" class="profile-container">
-  <h2>Профіль користувача</h2>
+<div *ngIf="user; else loading" class="profile-container container">
+  <h2 class="mb-4">Профіль користувача</h2>
 
-  <div class="profile-info">
-    <div class="profile-field">
+  <div class="profile-info mb-4">
+    <div class="profile-field mb-3">
       <strong>Ім'я:</strong>
       <span *ngIf="!isEditing">{{ user.name }}</span>
       <input
@@ -10,13 +10,13 @@
         [(ngModel)]="user.name"
         required
         placeholder="Введіть ім'я"
-        class="input-field"
+        class="form-control mt-2"
       />
-      <div *ngIf="isEditing && !user.name" class="error-message">
+      <div *ngIf="isEditing && !user.name" class="text-danger">
         Ім'я є обов'язковим
       </div>
     </div>
-    <div class="profile-field">
+    <div class="profile-field mb-3">
       <strong>Email:</strong>
       <span *ngIf="!isEditing">{{ user.email }}</span>
       <input
@@ -24,30 +24,43 @@
         [(ngModel)]="user.email"
         required
         placeholder="Введіть email"
-        class="input-field"
+        class="form-control mt-2"
       />
-      <div *ngIf="isEditing && !user.email" class="error-message">
+      <div *ngIf="isEditing && !user.email" class="text-danger">
         Email є обов'язковим
       </div>
-      <div *ngIf="isEditing && user.email && !isEmailValid(user.email)" class="error-message">
+      <div *ngIf="isEditing && user.email && !isEmailValid(user.email)" class="text-danger">
         Неправильний формат email
       </div>
     </div>
   </div>
 
-  <div *ngIf="errorMessage" class="error-message">
+  <div *ngIf="errorMessage" class="alert alert-danger">
     {{ errorMessage }}
   </div>
 
-  <button *ngIf="!isEditing" (click)="editProfile()" class="edit-button">Редагувати профіль</button>
+  <button *ngIf="!isEditing" (click)="editProfile()" class="btn btn-primary me-2">Редагувати профіль</button>
   <button
     *ngIf="isEditing"
     (click)="saveProfile()"
-    class="save-button"
+    class="btn btn-success me-2"
     [disabled]="!user.name || !user.email || !isEmailValid(user.email)">
     Зберегти
   </button>
-  <button (click)="logout()" class="logout-button">Вийти</button>
+  <button *ngIf="isEditing" (click)="cancelEdit()" class="btn btn-secondary">Закрити</button>
+  <button *ngIf="!isEditing" (click)="showLogoutModal = true" class="btn btn-danger">Вийти</button>
+</div>
+
+<div class="modal-backdrop" *ngIf="showLogoutModal"></div>
+<div class="custom-modal" *ngIf="showLogoutModal">
+  <div class="modal-content">
+    <h5 class="modal-title">Підтвердження виходу</h5>
+    <p>Ви дійсно хочете вийти з акаунту?</p>
+    <div class="modal-footer">
+      <button type="button" (click)="showLogoutModal = false" class="btn btn-secondary">Скасувати</button>
+      <button type="button" (click)="confirmLogout()" class="btn btn-danger">Вийти</button>
+    </div>
+  </div>
 </div>
 
 <ng-template #loading>

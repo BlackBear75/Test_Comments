@@ -13,8 +13,10 @@ import { FormsModule } from '@angular/forms';
 })
 export class ProfileComponent implements OnInit {
   user: any = null;
+  originalUser: any = null;
   errorMessage: string | null = null;
   isEditing: boolean = false;
+  showLogoutModal: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -38,6 +40,7 @@ export class ProfileComponent implements OnInit {
 
   editProfile() {
     this.isEditing = true;
+    this.originalUser = { ...this.user };
   }
 
   saveProfile() {
@@ -57,6 +60,15 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  cancelEdit() {
+    this.isEditing = false;
+    this.user = { ...this.originalUser };
+  }
+
+  confirmLogout() {
+    this.showLogoutModal = false;
+    this.logout();
+  }
 
   logout() {
     this.authService.logout();

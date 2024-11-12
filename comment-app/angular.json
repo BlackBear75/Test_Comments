@@ -28,11 +28,14 @@
             ],
             "styles": [
               "src/styles.css",
-              "node_modules/lightbox2/dist/css/lightbox.min.css"
+              "node_modules/lightbox2/dist/css/lightbox.min.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css"
             ],
             "scripts": [
-              "node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js"
+              "node_modules/lightbox2/dist/js/lightbox-plus-jquery.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
             ]
+
           },
           "configurations": {
             "production": {
