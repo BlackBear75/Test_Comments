@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,26 +11,25 @@ import { CommonModule } from '@angular/common';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   isNavbarVisible = true;
   lastScrollTop = 0;
 
   constructor(public authService: AuthService) {}
 
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      this.authService.getProfile().subscribe({
+        next: () => {},
+        error: () => this.authService.logout()
+      });
+    }
+  }
+
   @HostListener('window:scroll', [])
   onWindowScroll() {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-    if (scrollTop > this.lastScrollTop) {
-      this.isNavbarVisible = false;
-    } else {
-      this.isNavbarVisible = true;
-    }
+    this.isNavbarVisible = scrollTop <= this.lastScrollTop;
     this.lastScrollTop = scrollTop;
-  }
-
-  @HostListener('window:beforeunload', ['$event'])
-  unloadHandler(event: Event) {
-    this.authService.logout();
   }
 }

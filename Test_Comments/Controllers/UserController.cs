@@ -30,7 +30,7 @@ namespace Test_Comments.Controllers
 
             try
             {
-                var profile = await _userService.GetUserAsync(Guid.Parse(userId));
+                var profile = await _userService.GetProfile(Guid.Parse(userId));
                 return Ok(profile);
             }
             catch (Exception ex)
