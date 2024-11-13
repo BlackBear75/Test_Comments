@@ -3,6 +3,7 @@ import { RecordService } from '../services/record.service';
 import { FileService } from '../services/file.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import {CaptchaService} from '../services/captcha.service';
 
 @Component({
   selector: 'app-add-comment-modal',
@@ -28,12 +29,12 @@ export class AddCommentModalComponent {
   errorMessage: string | null = null;
   isFileValid: boolean = true;
 
-  constructor(private recordService: RecordService, private fileService: FileService) {
+  constructor(private recordService: RecordService, private fileService: FileService,private  captchaService: CaptchaService) {
     this.refreshCaptcha();
   }
 
   refreshCaptcha() {
-    this.recordService.getCaptchaImage().subscribe({
+    this.captchaService.getCaptchaImage().subscribe({
       next: (blob) => {
         this.captchaUrl = URL.createObjectURL(blob);
       },

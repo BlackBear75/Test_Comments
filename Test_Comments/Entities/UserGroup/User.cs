@@ -13,7 +13,10 @@ public class User : Document
     [Required]
     [EmailAddress(ErrorMessage = "Некорректный формат E-mail")]
     public string Email { get; set; }
-    
+
+    public string Captcha { get; set; }
+
+
     [Required]
     public string PasswordHash { get; set; }
 }

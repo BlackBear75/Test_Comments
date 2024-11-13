@@ -3,6 +3,7 @@ import { RecordService } from '../services/record.service';
 import { FileService } from '../services/file.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import {CaptchaService} from '../services/captcha.service';
 
 export interface RecordRequest {
   text: string;
@@ -38,13 +39,14 @@ export class AddRecordComponent {
   constructor(
     private recordService: RecordService,
     private fileService: FileService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private captchaService: CaptchaService
   ) {
     this.refreshCaptcha();
   }
 
   refreshCaptcha() {
-    this.recordService.getCaptchaImage().subscribe(blob => {
+    this.captchaService.getCaptchaImage().subscribe(blob => {
       this.captchaUrl = URL.createObjectURL(blob);
     });
   }

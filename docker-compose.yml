@@ -12,19 +12,24 @@ services:
       - app-network
 
   backend:
-    image: godgiven123/test_comments-backend:latest
+    build:
+      context: ./Test_Comments
+      dockerfile: Dockerfile_back
     ports:
       - "7092:7092"
     environment:
       - ASPNETCORE_URLS=http://+:7092
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=Test_Comments;User Id=sa;Password=JEnKins542s;Encrypt=False;TrustServerCertificate=True
+      - Cors__Origin=http://localhost:8080
     networks:
       - app-network
     depends_on:
       - sqlserver
 
   frontend:
-    image: godgiven123/test_comments-frontend:latest
+    build:
+      context: ./comment-app
+      dockerfile: Dockerfile_front
     ports:
       - "8080:80"
     networks:

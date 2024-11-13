@@ -17,7 +17,7 @@ public static class DependencyStartup
     {
         AddDbContext(builder.Services, builder.Configuration);
         AddRepositories(builder.Services);
-        AddCorsPolicy(builder.Services);
+        AddCorsPolicy(builder.Services,builder.Configuration);
         AddInfrastructure(builder.Services);
         AddServices(builder.Services);
     }
@@ -69,7 +69,7 @@ public static class DependencyStartup
             
         });
     }
-    private static void AddCorsPolicy(IServiceCollection services)
+    private static void AddCorsPolicy(IServiceCollection services,IConfiguration configuration)
     {
         services.AddDistributedMemoryCache();
         
@@ -77,7 +77,7 @@ public static class DependencyStartup
         {
             options.AddPolicy("AllowSpecificOrigin",
                 builder =>
-                    builder.WithOrigins("http://localhost:8080") 
+                    builder.WithOrigins(configuration.GetSection("Cors")["Origin"]) 
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials());

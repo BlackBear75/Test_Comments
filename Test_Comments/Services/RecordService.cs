@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Test_Comments.Entities.RecordGroup.Repository;
+using Test_Comments.Entities.UserGroup;
+using Test_Comments.Entities.UserGroup.Repository;
 using Test_Comments.Helper;
 using Test_Comments.Models;
 using Test_Comments.Models.RecordModels;
@@ -16,65 +18,77 @@ public interface IRecordService
 public class RecordService : IRecordService
 {
     private readonly IRecordRepository<Record> _recordRepository;
+    
+    private readonly IUserRepository<User> _userRepository;
+    private readonly ICaptchaService _captchaService;
     private readonly IUserService _userService;
 
-    public RecordService(IRecordRepository<Record> recordRepository, IUserService userService)
+    public RecordService(IRecordRepository<Record> recordRepository, IUserService userService,ICaptchaService captchaService,IUserRepository<User> userRepository)
     {
         _recordRepository = recordRepository;
         _userService = userService;
+        _captchaService = captchaService;
+        _userRepository = userRepository;
     }
 
-    public async Task<Response> AddRecordAsync(RecordRequest request, IFormFile? file, Guid userId, Guid? parentRecordId = null)
+   public async Task<Response> AddRecordAsync(RecordRequest request, IFormFile? file, Guid userId, Guid? parentRecordId = null)
+{
+    try
     {
-        try
+        var user = await _userService.GetUserAsync(userId);
+        if (user == null)
         {
-            var sanitizedText = HtmlHelper.SanitizeHTML(request.Text);
-            if (!HtmlHelper.ValidateHTMLTags(sanitizedText))
-            {
-                return new Response { Success = false, Message = "HTML містить недійсні або незакриті теги." };
-            }
-
-            var user = await _userService.GetUserAsync(userId);
-            if (user == null)
-            {
-                return new Response { Success = false, Message = "Користувача не знайдено" };
-            }
-
-            var record = new Record
-            {
-                Id = Guid.NewGuid(),
-                UserName = user.Name,
-                Email = user.Email,
-                Text = sanitizedText,
-                ParentRecordId = parentRecordId,
-                CreationDate = DateTime.UtcNow
-            };
-
-            if (file != null)
-            {
-                if (file.Length > 100 * 1024)
-                {
-                    return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
-                }
-
-                record.FileName = file.FileName;
-                record.FileType = file.ContentType;
-
-                using (var ms = new MemoryStream())
-                {
-                    await file.CopyToAsync(ms);
-                    record.FileData = ms.ToArray();
-                }
-            }
-
-            await _recordRepository.InsertOneAsync(record);
-            return new Response { Success = true, Message = parentRecordId == null ? "Запис успішно додано" : "Коментар успішно додано" };
+            return new Response { Success = false, Message = "Користувача не знайдено" };
         }
-        catch (Exception ex)
+
+        if (!_captchaService.ValidateCaptcha(request.Captcha, user.Captcha))
         {
-            return new Response { Success = false, Message = $"Помилка: {ex.Message}" };
+            return new Response { Success = false, Message = "Невірна CAPTCHA" };
         }
+
+        var sanitizedText = HtmlHelper.SanitizeHTML(request.Text);
+        if (!HtmlHelper.ValidateHTMLTags(sanitizedText))
+        {
+            return new Response { Success = false, Message = "HTML містить недійсні або незакриті теги." };
+        }
+
+        var record = new Record
+        {
+            Id = Guid.NewGuid(),
+            UserName = user.UserName,
+            Email = user.Email,
+            Text = sanitizedText,
+            ParentRecordId = parentRecordId,
+            CreationDate = DateTime.UtcNow
+        };
+
+        if (file != null)
+        {
+            if (file.Length > 100 * 1024)
+            {
+                return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
+            }
+
+            record.FileName = file.FileName;
+            record.FileType = file.ContentType;
+
+            using (var ms = new MemoryStream())
+            {
+                await file.CopyToAsync(ms);
+                record.FileData = ms.ToArray();
+            }
+        }
+
+        await _recordRepository.InsertOneAsync(record);
+        return new Response { Success = true, Message = parentRecordId == null ? "Запис успішно додано" : "Коментар успішно додано" };
     }
+    catch (Exception ex)
+    {
+        return new Response { Success = false, Message = $"Помилка: {ex.Message}" };
+    }
+}
+
+
 
   
     public async Task<List<Record>> GetPagedRootRecordsWithCommentsAsync(int page, int pageSize, string sortField, string sortDirection)

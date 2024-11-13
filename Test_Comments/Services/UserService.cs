@@ -10,7 +10,9 @@ namespace Test_Comments.Services;
 
 public interface IUserService
 {
-    Task<UserProfileRequest> GetUserAsync(Guid userId);
+    Task<User> GetUserAsync(Guid userId);
+    
+    Task<UserProfileRequest> GetProfile(Guid userId);
     Task<Response> UpdateProfileAsync(Guid userId, UserProfileRequest request);
 }
 
@@ -25,12 +27,21 @@ public class UserService : IUserService
         _recordRepository = recordRepository;
     }
 
-    public async Task<UserProfileRequest> GetUserAsync(Guid userId)
+    public async Task<User> GetUserAsync(Guid userId)
     {
         var user = await _userRepository.FindByIdAsync(userId);
         if (user == null)
         {
             throw new Exception("User not found");
+        }
+        return user;
+    }
+    public async Task<UserProfileRequest> GetProfile(Guid userId)
+    {
+        var user = await _userRepository.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("Profile not found");
         }
 
         return new UserProfileRequest

@@ -25,19 +25,16 @@ public class RecordController : ControllerBase
     [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> AddRecord([FromForm] RecordRequest request, [FromForm] IFormFile? file, [FromForm] Guid? parentRecordId = null)
     {
-        var storedCaptcha = HttpContext.Session.GetString("CaptchaCode");
-        if (string.IsNullOrWhiteSpace(request.Captcha) || request.Captcha != storedCaptcha)
-        {
-            return BadRequest(new Response { Success = false, Message = "Невірна CAPTCHA" });
-        }
         var userId = User.FindFirst("userId")?.Value;
         if (userId == null)
         {
             return Unauthorized(new Response { Success = false, Message = "Невідомий користувач" });
         }
+
         var result = await _recordService.AddRecordAsync(request, file, Guid.Parse(userId), parentRecordId);
         return result.Success ? Ok(result) : BadRequest(result);
     }
+
     [HttpGet("paged")]
     public async Task<IActionResult> GetPagedRootRecordsWithComments(int page = 1, int pageSize = 25, string sortField = "creationDate", string sortDirection = "asc")
     {
