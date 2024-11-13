@@ -64,11 +64,10 @@ public class RecordService : IRecordService
 
         if (file != null)
         {
-            if (file.Length > 100 * 1024)
+            if (file.ContentType == "text/plain" && file.Length > 100 * 1024)
             {
-                return new Response { Success = false, Message = "Файл перевищує максимальний розмір 100 КБ" };
+                return new Response { Success = false, Message = "Текстовий файл перевищує максимальний розмір 100 КБ" };
             }
-
             record.FileName = file.FileName;
             record.FileType = file.ContentType;
 

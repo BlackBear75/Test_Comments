@@ -14,7 +14,7 @@ public class User : Document
     [EmailAddress(ErrorMessage = "Некорректный формат E-mail")]
     public string Email { get; set; }
 
-    public string Captcha { get; set; }
+    public string? Captcha { get; set; }
 
 
     [Required]

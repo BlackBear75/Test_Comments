@@ -111,6 +111,7 @@ export class AddCommentModalComponent {
         this.clearForm();
         this.onCommentAdded.emit();
         this.closeModal();
+        this.refreshCaptcha();
       },
       error: (error) => {
         this.errorMessage = error.error?.message || 'Сталася помилка при додаванні коментаря.';

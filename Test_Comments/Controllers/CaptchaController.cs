@@ -12,12 +12,10 @@ namespace Test_Comments.Controllers
     public class CaptchaController : ControllerBase
     {
         private readonly ICaptchaService _captchaService;
-        private readonly IUserRepository<User> _userRepository;
 
-        public CaptchaController(ICaptchaService captchaService, IUserRepository<User> userRepository)
+        public CaptchaController(ICaptchaService captchaService)
         {
             _captchaService = captchaService;
-            _userRepository = userRepository;
         }
 
         [HttpGet("generate")]

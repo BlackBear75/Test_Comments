@@ -20,7 +20,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:7092
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=Test_Comments;User Id=sa;Password=JEnKins542s;Encrypt=False;TrustServerCertificate=True
-      - Cors__Origin=http://localhost:8080
+      - Cors__Origin=http://178.151.162.241:8080
     networks:
       - app-network
     depends_on:

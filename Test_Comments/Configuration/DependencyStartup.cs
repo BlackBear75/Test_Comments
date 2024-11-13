@@ -48,6 +48,9 @@ public static class DependencyStartup
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRecordService, RecordService>();
+        services.AddScoped<ICaptchaService, CaptchaService>();
+        
+    
     }
     private static void AddInfrastructure(IServiceCollection services)
     {
@@ -69,21 +72,23 @@ public static class DependencyStartup
             
         });
     }
-    private static void AddCorsPolicy(IServiceCollection services,IConfiguration configuration)
+    private static void AddCorsPolicy(IServiceCollection services, IConfiguration configuration)
     {
         services.AddDistributedMemoryCache();
-        
+
+        var corsOrigin = configuration.GetSection("Cors")["Origin"];
+    
+        Console.WriteLine($"CORS дозволений для домену: {corsOrigin}");
+    
         services.AddCors(options =>
         {
             options.AddPolicy("AllowSpecificOrigin",
                 builder =>
-                    builder.WithOrigins(configuration.GetSection("Cors")["Origin"]) 
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials());
-            
+                    builder.WithOrigins(corsOrigin) 
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials());
         });
-        
-
     }
+
 }
