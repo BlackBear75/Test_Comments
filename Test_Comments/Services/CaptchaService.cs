@@ -38,6 +38,10 @@ namespace Test_Comments.Services
             var user = await _userRepository.FindOneAsync(x => x.Id == userId);
             user.Captcha = captchaCode;
             await _userRepository.UpdateOneAsync(user);
+            foreach (var fontFamily in SystemFonts.Families)
+            {
+                Console.WriteLine(fontFamily.Name);
+            }
 
             return captchaCode;
         }
@@ -49,7 +53,7 @@ namespace Test_Comments.Services
                 image.Mutate(ctx =>
                 {
                     ctx.Fill(Color.White);
-                    var font = SystemFonts.CreateFont("DejaVu Sans", 24);
+                    var font = SystemFonts.CreateFont("Tahoma", 24);
                     ctx.DrawText(captchaCode, font, Color.Black, new PointF(10, 10));
                 });
 
